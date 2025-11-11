@@ -1,0 +1,371 @@
+#' Compare the attributable health impacts between two scenarios
+
+# DESCRIPTION ##################################################################
+#' @description
+#' This function calculates the health impacts between two scenarios (e.g. before and after a intervention in a health impact assessments) using either the delta or pif approach.
+
+# ARGUMENTS ####################################################################
+#' @param output_attribute_scen_1 Scenario 1 as in the output of attribute()
+#' @param output_attribute_scen_2 Scenario 2 as in the output of attribute()
+#' @param approach_comparison \code{String} showing the method of comparison. Options: "delta" or "pif".
+
+# DETAILS ######################################################################
+#' @details
+#' Note that the PIF comparison approach assumes same baseline health data for scenario 1 and 2 (e.g. comparison of two scenarios at the same time).
+#' @details
+#' \strong{Equations population impact fraction (PIF)}
+#' @details The Population Impact Fraction (PIF) is defined as the proportional change in disease or mortality when exposure to a risk factor is changed (for instance due to an intervention). The most general equation describing this mathematically is an integral form (WHO 2003a, https://www.who.int/publications/i/item/9241546204; WHO 2003b, https://doi.org/10.1186/1478-7954-1-1):
+#' \deqn{PIF = \frac{\int RR(x)PE(x)dx - \int RR(x)PE'(x)dx}{\int RR(x)PE(x)dx}}
+#' @details Where:
+#' @details x     = exposure level
+#' @details PE(x) = population distribution of exposure
+#' @details PE'(x) = alternative population distribution of exposure
+#' @details RR(x) = relative risk at exposure level compared to the reference level
+#' @details
+#' If the population exposure is described as a categorical rather than continuous exposure, the integrals in equation (5) may be converted to sums, resulting in the following equations for the PIF (WHO 2003a, https://www.who.int/publications/i/item/9241546204; WHO 2003b, https://doi.org/10.1186/1478-7954-1-1):
+#' \deqn{PIF = \frac{\sum RR_{i} \times PE_{i} - \sum RR_{i}PE'_{i}}{\sum RR_{i}PE_{i}}}
+#' @details Where:
+#' @details i     = is the exposure category (e.g. in bins of 1 \eqn{\mu g/m^3} PM2.5 or 5 dB noise exposure)
+#' @details \eqn{PE_i} = fraction of population in exposure category i
+#' @details \eqn{PE'_i} = fraction of population in category i for alternative (ideal) exposure scenario
+#' @details \eqn{RR_i} = relative risk for exposure category level i compared to the reference level
+#' @details
+#' Finally, if the exposure is provided as the population weighted mean concentration (PWC), the equation for the PIF is reduced to:
+#' \deqn{PIF = \frac{RR_{PWC} - RR_{alt PWC}}{RR_{PWC}}}
+#' @details Where:
+#' @details \eqn{RR_{PWC}} = relative risk associated with the population weighted mean exposure
+#' @details \eqn{RR_{PWC}} = relative risk associated with the population weighted mean for the alternative exposure scenario
+#' @details
+#' \strong{Delta comparison approach}
+#' @details
+#' With the delta comparison the difference between two scenarios is obtained by subtraction. The delta approach is suited for all comparison cases, and specifically for comparison of a situation now with a situation in the future.
+
+# VALUE ########################################################################
+#' @returns
+#' This function returns a \code{list} containing:
+#' @returns
+#' 1) \code{health_main} (\code{tibble}) containing the main results from the comparison;
+#' \itemize{
+#'  \item \code{impact} (\code{numeric} column) difference in attributable health burden/impact between scenario 1 and 2
+#'  \item \code{impact_scen_1} (\code{numeric} column) attributable health impact of scenario 1
+#'  \item \code{impact_scen_2} (\code{numeric} column) attributable health impact of scenario 2
+#'  \item And many more
+#'  }
+#' @returns
+#' 2) \code{health_detailed} (\code{list}) containing detailed (and interim) results from the comparison.
+#' \itemize{
+#'  \item \code{results_raw} (\code{tibble}) containing comparison results for each combination of input uncertainty for both scenario 1 and 2
+#'  \item \code{results_by_geo_id_micro} (\code{tibble}) containing comparison results for each geographic unit under analysis (specified in \code{geo_id_micro} argument)
+#'  \item \code{results_by_geo_id_macro} (\code{tibble}) containing comparison results for each aggregated geographic unit under analysis (specified in \code{geo_id_macro} argument))
+#'  \item \code{input_table} (\code{list}) containing the inputs to each relevant argument for both scenario 1 and 2
+#'  \item \code{input_args} (\code{list}) containing all the argument inputs for both scenario 1 and 2 used in the background
+#'  \item \code{scen_1} (\code{tibble}) containing results for scenario 1
+#'  \item \code{scen_2} (\code{tibble}) containing results for scenario 2
+#'  }
+
+# EXAMPLES #####################################################################
+#' @examples
+#' # Goal: comparison of two scenarios with delta approach
+#' scenario_A <- attribute_health(
+#'   exp_central = 8.85,   # EXPOSURE 1
+#'   cutoff_central = 5,
+#'   bhd_central = 25000,
+#'   approach_risk = "relative_risk",
+#'   erf_shape = "log_linear",
+#'   rr_central = 1.118,
+#'   rr_increment = 10
+#' )
+#' scenario_B <- attribute_health(
+#'   exp_central = 6,     # EXPOSURE 2
+#'   cutoff_central = 5,
+#'   bhd_central = 25000,
+#'   approach_risk = "relative_risk",
+#'   erf_shape = "log_linear",
+#'   rr_central = 1.118,
+#'   rr_increment = 10
+#' )
+#' results <- compare(
+#' approach_comparison = "delta",
+#' output_attribute_scen_1 = scenario_A,
+#' output_attribute_scen_2 = scenario_B
+#' )
+#' # Inspect the difference, stored in the \code{impact} column
+#' results$health_main |>
+#'   dplyr::select(impact, impact_scen_1, impact_scen_2) |>
+#'   print()
+#'
+#' # Goal: comparison of two scenarios with population impact fraction (pif) approach
+#' output_attribute_scen_1 <- attribute_health(
+#'   exp_central = 8.85,   # EXPOSURE 1
+#'   cutoff_central = 5,
+#'   bhd_central = 25000,
+#'   approach_risk = "relative_risk",
+#'   erf_shape = "log_linear",
+#'   rr_central = 1.118, rr_lower = 1.060, rr_upper = 1.179,
+#'   rr_increment = 10
+#' )
+#' output_attribute_scen_2 <- attribute_health(
+#'   exp_central = 6,      # EXPOSURE 2
+#'   cutoff_central = 5,
+#'   bhd_central = 25000,
+#'   approach_risk = "relative_risk",
+#'   erf_shape = "log_linear",
+#'   rr_central = 1.118, rr_lower = 1.060, rr_upper = 1.179,
+#'   rr_increment = 10
+#' )
+#' results <- compare(
+#'   output_attribute_scen_1 = output_attribute_scen_1,
+#'   output_attribute_scen_2 = output_attribute_scen_2,
+#'   approach_comparison = "pif"
+#' )
+#' # Inspect the difference, stored in the impact column
+#' results$health_main$impact
+
+#' @author Alberto Castro & Axel Luyten
+
+#' @export
+
+
+
+compare <-
+  function(
+    output_attribute_scen_1,
+    output_attribute_scen_2,
+    approach_comparison = "delta"){
+
+    # Extract input data (for subsequent get_impact call) ########################
+
+    input_args_scen_1 <- output_attribute_scen_1[["health_detailed"]][["input_args"]]
+    input_args_scen_2 <- output_attribute_scen_2[["health_detailed"]][["input_args"]]
+
+    input_table_scen_1 <- output_attribute_scen_1[["health_detailed"]][["input_table"]]
+    input_table_scen_2 <- output_attribute_scen_2[["health_detailed"]][["input_table"]]
+
+    results_raw_scen_1 <- output_attribute_scen_1[["health_detailed"]][["results_raw"]]
+    results_raw_scen_2 <- output_attribute_scen_2[["health_detailed"]][["results_raw"]]
+
+    intermediate_calculations_scen_1 <- output_attribute_scen_1[["health_detailed"]][["intermediate_calculations"]]
+    intermediate_calculations_scen_2 <- output_attribute_scen_2[["health_detailed"]][["intermediate_calculations"]]
+
+
+
+    # Force the same environment in the functions of erf_eq.
+    # Otherwise, not identified as identical and error joining below.
+    if(!base::is.null(input_args_scen_1[["value"]][["erf_eq_central"]])){
+
+      erf_eq_vars <- base::paste0("erf_eq", c("erf_eq", "_central", "_lower", "_upper"))
+
+      input_args_scen_1[["value"]][erf_eq_vars] <-
+        input_args_scen_2[["value"]][erf_eq_vars]
+
+      input_table_scen_1[["erf_eq"]] <- input_table_scen_2[["erf_eq"]]
+
+      }
+
+    # Key variables #############################
+    # Identify the arguments that have _scen_1 or _scen_2 in the name (scenario specific)
+    # This is useful for joining data frames below
+    scenario_specific_arguments <-
+      c("exp_central", "exp_lower", "exp_upper",
+        "bhd_central", "bhd_lower", "bhd_upper",
+        "population",
+        "prop_pop_exp",
+        "pop_exp",
+        "year_of_analysis",
+        "info",
+        "impact", "pop_fraction")
+
+    # Only those for baseline health data (including for lifetable)
+    scenario_arguments_for_bhd_and_lifetable <-
+      c("bhd_central", "bhd_lower", "bhd_upper",
+        "approach_exposure", "approach_newborns",
+        "year_of_analysis")
+
+    is_absolute_risk <-
+      base::unique(input_table_scen_1$approach_risk) == "absolute_risk"
+
+    is_lifetable <- base::unique(input_table_scen_1$is_lifetable)
+
+
+
+
+
+    # Data validation ########################
+
+    # Argument used (user entered data)
+    passed_arguments_scen_1 <-
+      base::names(purrr::keep(input_args_scen_1[["is_entered_by_user"]], ~ .x == TRUE))
+
+    passed_arguments_scen_2 <-
+      base::names(purrr::keep(input_args_scen_2[["is_entered_by_user"]], ~ .x == TRUE))
+
+
+   # Check that the two scenarios used the same arguments (calculation pathways)
+
+    if(!base::identical(passed_arguments_scen_1, passed_arguments_scen_2)){
+      stop("The two scenarios must use the same arguments.",
+           call. = FALSE)
+    }
+
+
+    # Arguments that should be identical in both scenarios
+    common_arguments_scen_1 <-
+      base::setdiff(passed_arguments_scen_1, scenario_specific_arguments)
+
+    common_arguments_scen_2 <-
+      base::setdiff(passed_arguments_scen_2, scenario_specific_arguments)
+
+
+
+    if(base::identical(common_arguments_scen_1, common_arguments_scen_2)){
+      common_arguments <- common_arguments_scen_1
+    }else{
+      stop("The two scenarios must use the same common arguments.",
+           call. = FALSE)
+    }
+
+    common_arguments_identical <-
+      check_if_args_identical(
+        args_a = input_args_scen_1[["value"]],
+        args_b = input_args_scen_2[["value"]],
+        names_to_check = common_arguments)
+
+    # Check that (relevant) input values from scenarios A & B are equal
+    # Works also if no input was provided (might be the case for e.g. ..._lower arguments)
+    # Check if the common arguments in both scenarios are identical
+
+    if( ! base::all(common_arguments_identical) )
+    {stop(
+      base::paste0(
+        base::paste(base::names(common_arguments_identical)[!common_arguments_identical],
+                    collapse = ", "),
+        " must be identical in both scenarios."),
+      call. = FALSE)}
+
+    # Check that bhd is the same in both scenarios for the PIF approach (only one place in the equation)
+
+
+
+    if(approach_comparison == "pif"){
+
+      error_if_var_is_not_identical <- function(var){
+        if(var %in% c(base::names(input_table_scen_1),base::names(input_table_scen_2))  &&
+           ! base::identical(input_table_scen_1[[var]], input_table_scen_2[[var]])){
+
+          stop("For the PIF approach, ", var, " must be identical in both scenarios.",
+               call. = FALSE)
+        }
+      }
+
+      # Error if population and bhd are different in the scenarios
+      # (only applicable for PIF)
+      error_if_var_is_not_identical(var = "population")
+
+      error_if_var_is_not_identical(var = "bhd")
+
+      # PIF and absolute risk are not compatible
+      if(is_absolute_risk){
+        stop("For the PIF approach, the absolute risk approach cannot be used.",
+             call. = FALSE)
+      }
+    }
+
+
+    # Delta approach ########################
+
+    if(approach_comparison == "delta"){
+
+
+      # Identify the columns that are to be used to join results_raw_scen_1 and _scen_2
+      joining_columns_output <-
+        find_joining_columns(
+          df_1 = results_raw_scen_1,
+          df_2 = results_raw_scen_2,
+          except = scenario_specific_arguments)
+
+      # Merge the result tables by common columns
+      results_raw <-
+        dplyr::left_join(
+         results_raw_scen_1,
+         results_raw_scen_2,
+          by = joining_columns_output,
+          suffix = c("_scen_1", "_scen_2")) |>
+        # Calculate the delta (difference) between scenario 1 and 2
+        dplyr::mutate(impact = impact_scen_1 - impact_scen_2,
+                      impact_rounded = base::round(impact, 0))
+
+      input_table <-
+        base::list(input_table_scen_1 = input_table_scen_1,
+                   input_table_scen_2 = input_table_scen_2)
+
+      intermediate_calculations <-
+        base::list(intermediate_calculations_scen_1 = intermediate_calculations_scen_1,
+                   intermediate_calculations_scen_2 = intermediate_calculations_scen_2)
+
+
+      # PIF approach ########################
+
+
+      # If the user choose "pif"  as comparison method
+      # pif is additonally calculated
+      # impact is overwritten with the new values that refer to pif instead of paf
+      # Use if instead of else if becuase otherwise the package will read here inside
+      # and produce an error because the variables are different
+      }else if(approach_comparison == "pif"){
+
+        # Get identical columns to join data frames (as above)
+        joining_columns_input <-
+          find_joining_columns(
+            df_1 = input_table_scen_1,
+            df_2 = input_table_scen_2,
+            # except = scenario_specific_arguments)
+            except = base::setdiff(
+              scenario_specific_arguments,
+              # Keep year_of_analysis in the table
+              # so it can be accessed in the get_impact script
+              c("year_of_analysis", "population"))
+            )
+
+        # Merge the input tables by common columns
+        input_table <-
+          dplyr::left_join(
+            input_table_scen_1,
+            input_table_scen_2,
+            by = joining_columns_input,
+            suffix = c("_scen_1", "_scen_2"))
+
+        results <-
+          get_impact(
+            input_table = input_table,
+            pop_fraction_type = "pif")
+
+        # Collect results
+        results_raw <- results[["results_raw"]]
+        intermediate_calculations <- results[["intermediate_calculations"]]
+
+      }
+
+
+    # Organize output
+    # Classify the individual results of each scenario in delta and pif method
+    # in a list
+
+    output <-
+      get_output(
+        input_args = base::list(approach_comparison = approach_comparison,
+                                input_args_scen_1 = input_args_scen_1,
+                                input_args_scen_2 = input_args_scen_2),
+        input_table = input_table,
+        intermediate_calculations = intermediate_calculations,
+        results_raw = results_raw)
+
+    output[["health_detailed"]][["scen_1"]] <- results_raw_scen_1
+    output[["health_detailed"]][["scen_2"]] <- results_raw_scen_2
+
+
+
+
+    return(output)
+
+
+  }
