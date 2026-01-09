@@ -1,29 +1,84 @@
-# INSTALL THE *healthiar* R PACKAGE FROM GITHUB
-(Requirement: R version 4.3.0 or higher)
+# healthiar <a href="https://swisstph.github.io/healthiar/"><img src="man/figures/logo.png" align="right" height="138" alt="healthiar website" /></a>
 
-Run the following commands below in RStudio to install *healthiar*
-1) `install.packages(c("remotes", "knitr", "rmarkdown"))`
-2) `remotes::install_github(repo = "SwissTPH/healthiar", build_vignettes = TRUE)`
-3) If you get asked to install or update any dependencies (= other packages that are needed for *healthiar*) please install or update all of them.
-4) `library(healthiar)`
+## Introduction
 
-We recommend to frequently install the newest *healthiar* version by running command 2) from above.
-(If you had previously installed *healthiar* while the repository was still private, you must remove your personal access token (PAT) before installing the package again.)
+*healthiar* is an R package to quantify and monetize health impacts attributable to exposure (e.g. air pollution, noise...) in a study area. Using *healthiar*, you can ...
 
-# GET STARTED WITH *healthiar*
-A 45' minutes introduction to the package can be found here: https://team.swisstph.ch/s/aN_wN5MUTAS3bwEkWvtvaQ
+- Quantify health impacts choosing among multiple input data formats and calculation pathways:
 
-The slides of the presentation can be found here: https://github.com/SwissTPH/healthiar/tree/master/varia/Workshops_and_demos/workshop
+   - Exposure data as single value or as distribution
+   
+   - Relative risk or absolute risk
+   
+   - Fixed-shape or user-defined exposure-response functions
+   
+   - Single or age-specific baseline health data (life table approach)
 
-The vignette *intro_to_healthiar* (i.e. documentation on how to use the healthiar package) will get you started with the *healthiar* R package.
-1) Open it in RStudio: go to the *Packages* tab in RStudio, scroll down to the *healthiar* package and clicking on the hyperlinks *healthiar* > *User guides, package vignettes and other documentation* > *healthiar::intro_to_healthiar*
-2) Open it in browser: run `browseVignettes("healthiar")` in the console and click on the *HTML* hyperlink on the page that opens up in your browser
+- Iterate across geographical units
 
-# FEEDBACK
-Feedback is very welcome - please provide it via GitHub issues: https://github.com/SwissTPH/healthiar/issues
+- Compare scenarios
 
-# STAYING UPDATED
-If you want to receive updates in the future about new developments or workshops of the healthiar R package, please leave your email at the end of the form (otherwise you will not receive such updates in the future).
+- Include and summarize uncertainties
 
-# WE OFFER *healthiar* INTRODUCTIONS
-Would you like to be introduced to *healthiar*? In case you would like us to introduce the package at a conference or another event please get in touch: alberto.castrofernandez@swisstph.ch and axel.luyten@swisstph.ch
+- Monetize health impacts or perform cost-benefit analyses adjusting for inflation and discounting
+
+- Consider social inequalities in the assessment and stratify the results
+
+## Getting started 
+To get started with the `healthiar` R package, we recommend to look at the vignette (~ package manual) *intro_to_healthiar*, which you cou can access
+
+a) on the [package website](https://swisstph.github.io/healthiar/articles/index.html) (recommended)
+
+b) in R Studio: Click on the *Packages* tab in RStudio, scroll down to the *healthiar* package and clicking on the hyperlinks *healthiar* > *User guides, package vignettes and other documentation* 
+
+c) in the web browser: Run `browseVignettes("healthiar")` in the R console and the page will open up in your browser
+
+Additionally, a 45 minutes introduction to the package can be found [here](https://team.swisstph.ch/s/aN_wN5MUTAS3bwEkWvtvaQ). The slides of the presentation can be found [here](https://github.com/SwissTPH/healthiar/tree/master/varia/Workshops_and_demos/workshop)
+
+See the function help pages for information about specific functions. In RStudio, you can access the function documentation of e.g. the function `attribute_health` by
+
+a) going to the [reference page of the package website](https://swisstph.github.io/healthiar/reference/index.html)
+
+b) running `?attribute_health` in RStudio (with `healthiar` loaded)
+
+c) going to the `Packages tab` and then clicking on `healthiar`
+
+## Installation
+We recommend to frequently install the newest *healthiar* version. Please note that **`healthiar` requires R version 4.3.0 or higher**. There are two options to install *healthiar*:
+
+a) **From CRAN**: Click on the *Packages* tab in RStudio and on the *Install* button. Leave the *Install from:* option set to *Reporsitory (CRAN)* and then search and select *healthiar* and finally click on *Install*, keeping *Install dependencies* activated.
+
+b) **From Github (most recent version)**: Run the following commands below in RStudio to install *healthiar*:
+- `install.packages(c("knitr", "rmarkdown"))`
+- `remotes::install_github(repo = "SwissTPH/healthiar", build_vignettes = TRUE)`
+- Note: install or update all package dependencies (= other packages that are needed for *healthiar*) if you get asked to do so
+
+**After installation**, do not forget to load the package by running the call `library(healthiar)`. 
+
+
+## Citation
+We love that you use *healthiar*. In that case, please do not forget to cite *healthiar* in your work. Three options to get there: 
+
+a) On the [healthiar package website](https://swisstph.github.io/healthiar/authors.html#citation)  
+
+b) See [CITATION.R](https://github.com/SwissTPH/healthiar/blob/master/inst/CITATION)
+
+c) In your R console, enter *citation("healthiar")*.
+
+In options b) and c), you always see the updated citation. In option a), you see citation of the *healthiar* version that you have installed locally, which might be outdated.
+
+## Disclamer and licence 
+By using *healthiar*, you confirm that you agree with the following disclaimer and terms of the licence:
+
+a) Disclaimer: The R package *healthiar* is work in progress and the developers are not liable for the results. 
+
+b) License: Available [here](https://github.com/SwissTPH/healthiar/blob/master/LICENSE.md).
+
+## Feedback
+Feel free provide feedback via [GitHub issues](https://github.com/SwissTPH/healthiar/issues)
+
+## Presenting *healthiar*
+If you would like us to present *healthiar* at a conference, lecture or training, please, contact us: alberto.castrofernandez@swisstph.ch and axel.luyten@swisstph.ch
+
+## Acknowledgements
+*healthiar* was been developed under the framework of EU project BEST-COST. BEST-COST is funded by the European Union’s Horizon Europe programme under Grant Agreement No.101095408.

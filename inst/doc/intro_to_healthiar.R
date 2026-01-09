@@ -47,31 +47,6 @@ results_pm_copd$health_main |>
   knitr::kable() # For formatting reasons only: prints tibble in nice layout
 
 ## -----------------------------------------------------------------------------
-results_pm_copd <- attribute_health(
-    erf_shape = "log_linear",
-    rr_central = 1.369, 
-    rr_lower = 1.124, # lower 95% confidence interval (CI) bound of RR
-    rr_upper = 1.664, # upper 95% CI bound of RR
-    rr_increment = 10, 
-    exp_central = 8.85, 
-    exp_lower = 8, # lower 95% CI bound of exposure
-    exp_upper = 10, # upper 95% CI bound of exposure
-    cutoff_central = 5,
-    bhd_central = 30747, 
-    bhd_lower = 28000, # lower 95% confidence interval estimate of BHD
-    bhd_upper = 32000 # upper 95% confidence interval estimate of BHD
-) 
-
-## ----eval=FALSE, echo=TRUE, include=FALSE-------------------------------------
-# results_pm_copd$health_detailed$results_raw
-
-## ----echo=FALSE---------------------------------------------------------------
-results_pm_copd$health_detailed$results_raw |> 
-  dplyr::select(erf_ci, exp_ci, bhd_ci, impact_rounded) |> 
-  dplyr::slice(1:9) |> 
-  knitr::kable() # Prints tibble in a minimal layout
-
-## -----------------------------------------------------------------------------
 results_noise_ha <- attribute_health(
   approach_risk = "absolute_risk", # default is "relative_risk"
   exp_central = c(57.5, 62.5, 67.5, 72.5, 77.5), # mean of the exposure categories
@@ -181,6 +156,93 @@ results_iteration_ar[["health_detailed"]][["results_by_geo_id_micro"]] |>
 rm(results_iteration_ar, data)
 
 ## -----------------------------------------------------------------------------
+results_pm_copd <- attribute_health(
+    erf_shape = "log_linear",
+    rr_central = 1.369, 
+    rr_lower = 1.124, # lower 95% confidence interval (CI) bound of RR
+    rr_upper = 1.664, # upper 95% CI bound of RR
+    rr_increment = 10, 
+    exp_central = 8.85, 
+    exp_lower = 8, # lower 95% CI bound of exposure
+    exp_upper = 10, # upper 95% CI bound of exposure
+    cutoff_central = 5,
+    bhd_central = 30747, 
+    bhd_lower = 28000, # lower 95% confidence interval estimate of BHD
+    bhd_upper = 32000 # upper 95% confidence interval estimate of BHD
+) 
+
+## ----eval=FALSE, echo=TRUE, include=FALSE-------------------------------------
+# results_pm_copd$health_detailed$results_raw
+
+## ----echo=FALSE---------------------------------------------------------------
+results_pm_copd$health_detailed$results_raw |> 
+  dplyr::select(erf_ci, exp_ci, bhd_ci, impact_rounded) |> 
+  dplyr::slice(1:9) |> 
+  knitr::kable() # Prints tibble in a minimal layout
+
+## -----------------------------------------------------------------------------
+results_pm_copd_summarized <- 
+  summarize_uncertainty(
+    output_attribute = results_pm_copd,
+    n_sim = 100
+)
+
+## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+# results_pm_copd_summarized$uncertainty_main
+
+## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
+results_pm_copd_summarized$uncertainty_main |> 
+  knitr::kable()
+
+## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+# results_pm_copd_summarized$uncertainty_detailed$impact_by_sim
+
+## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
+results_pm_copd_summarized$uncertainty_detailed$impact_by_sim |> 
+  knitr::kable()
+
+## ----echo=FALSE, eval=TRUE, include=FALSE-------------------------------------
+rm(results_pm_copd_summarized)
+
+## -----------------------------------------------------------------------------
+results_pm_copd_mr_brt <- attribute_health(
+  exp_central = 8.85,
+  bhd_central = 30747,
+  cutoff_central = 0,
+  # Specify the function based on x-y point pairs that lie on the ERF
+  erf_eq_central = splinefun(
+    x = c(0, 5, 10, 15, 20, 25, 30, 50, 70, 90, 110),
+    y = c(1.00, 1.04, 1.08, 1.12, 1.16, 1.20, 1.23, 1.35, 1.45, 1.53, 1.60),
+    method = "natural")
+)
+
+## ----fig.alt="ERF curve", eval=TRUE, include=TRUE, echo=FALSE-----------------
+
+x <- c(0, 5, 10, 15, 20, 25, 30, 50, 70, 90, 110)
+y <- c(1.00, 1.04, 1.08, 1.12, 1.16, 1.20, 1.23, 1.35, 1.45, 1.53, 1.60)
+spline_func <- 
+  stats::splinefun(
+    x = x,
+    y = y,
+    method = "natural")
+## Generate finer x-values
+x_dense <- seq(min(x), max(x), length.out = 200)
+## Evaluate the spline function at these points
+y_dense <- spline_func(x_dense)
+## Plot
+plot(x, 
+     y, 
+     # main = "User-defined ERF", 
+     main = "", 
+     xlab = "Exposure",
+     ylab = "Relative risk",
+     col = "blue", 
+     pch = 19)
+lines(x_dense, y_dense, col = "red", lwd = 2)
+legend("topleft", legend = c("Original points", "Spline curve"),
+       col = c("blue", "red"), pch = c(19, NA), lty = c(NA, 1), lwd = c(NA, 2))
+
+## -----------------------------------------------------------------------------
 results_age_group <- attribute_health(
         approach_risk = "relative_risk",
         age = c("below_65", "65_plus"),
@@ -239,163 +301,6 @@ output_stratified <- output_attribute$health_detailed$results_raw |>
 rm(info, output_attribute, output_stratified)
 
 ## -----------------------------------------------------------------------------
-results_pm_copd_mr_brt <- attribute_health(
-  exp_central = 8.85,
-  bhd_central = 30747,
-  cutoff_central = 0,
-  # Specify the function based on x-y point pairs that lie on the ERF
-  erf_eq_central = splinefun(
-    x = c(0, 5, 10, 15, 20, 25, 30, 50, 70, 90, 110),
-    y = c(1.00, 1.04, 1.08, 1.12, 1.16, 1.20, 1.23, 1.35, 1.45, 1.53, 1.60),
-    method = "natural")
-)
-
-## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
-
-x <- c(0, 5, 10, 15, 20, 25, 30, 50, 70, 90, 110)
-y <- c(1.00, 1.04, 1.08, 1.12, 1.16, 1.20, 1.23, 1.35, 1.45, 1.53, 1.60)
-spline_func <- 
-  stats::splinefun(
-    x = x,
-    y = y,
-    method = "natural")
-## Generate finer x-values
-x_dense <- seq(min(x), max(x), length.out = 200)
-## Evaluate the spline function at these points
-y_dense <- spline_func(x_dense)
-## Plot
-plot(x, 
-     y, 
-     # main = "User-defined ERF", 
-     main = "", 
-     xlab = "Exposure",
-     ylab = "Relative risk",
-     col = "blue", 
-     pch = 19)
-lines(x_dense, y_dense, col = "red", lwd = 2)
-legend("topleft", legend = c("Original points", "Spline curve"),
-       col = c("blue", "red"), pch = c(19, NA), lty = c(NA, 1), lwd = c(NA, 2))
-
-## -----------------------------------------------------------------------------
-scenario_A <- attribute_health(
-    exp_central = 8.85,   # EXPOSURE 1
-    cutoff_central = 5, 
-    bhd_central = 25000,
-    approach_risk = "relative_risk",
-    erf_shape = "log_linear",
-    rr_central = 1.118,
-    rr_increment = 10)
-
-## -----------------------------------------------------------------------------
-scenario_B <- attribute_health(
-    exp_central = 6,     # EXPOSURE 2
-    cutoff_central = 5, 
-    bhd_central = 25000,
-    approach_risk = "relative_risk",
-    erf_shape = "log_linear",
-    rr_central = 1.118,
-    rr_increment = 10)
-
-## -----------------------------------------------------------------------------
-scenario_B <- attribute_mod(
-  output_attribute = scenario_A, 
-  exp_central = 6
-)
-
-## -----------------------------------------------------------------------------
-
-results_comparison <- compare(
-  approach_comparison = "delta", # or "pif" (population impact fraction)
-  output_attribute_scen_1 = scenario_A,
-  output_attribute_scen_2 = scenario_B
-)
-
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
-# results_comparison$health_main
-
-## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
-results_comparison[["health_main"]] |> 
-  dplyr::select(
-    impact, impact_rounded,
-    impact_scen_1, impact_scen_2,
-    bhd,
-    dplyr::starts_with("exp_"),
-    -dplyr::starts_with("exp_ci"), # remove col "exp_ci"
-    dplyr::starts_with("rr_con")) |> 
-  dplyr::slice_head() |> 
-  knitr::kable()
-
-## ----echo=FALSE, eval=TRUE, include=FALSE-------------------------------------
-rm(results_comparison, scenario_A, scenario_B)
-
-## -----------------------------------------------------------------------------
-results_pm_copd_summarized <- 
-  summarize_uncertainty(
-    output_attribute = results_pm_copd,
-    n_sim = 100
-)
-
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
-# results_pm_copd_summarized$uncertainty_main
-
-## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
-results_pm_copd_summarized$uncertainty_main |> 
-  knitr::kable()
-
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
-# results_pm_copd_summarized$uncertainty_detailed$impact_by_sim
-
-## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
-results_pm_copd_summarized$uncertainty_detailed$impact_by_sim |> 
-  knitr::kable()
-
-## ----echo=FALSE, eval=TRUE, include=FALSE-------------------------------------
-rm(results_pm_copd_summarized)
-
-## -----------------------------------------------------------------------------
-results_pm_copd <- monetize(
-    output_attribute = results_pm_copd,
-    discount_shape = "exponential",
-    discount_rate = 0.03,
-    n_years = 5,
-    valuation = 50000 # E.g. EURO
-)
-
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
-# results_pm_copd$monetization_main
-
-## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
-results_pm_copd$monetization_main |> 
-  select(erf_ci, monetized_impact) |> 
-  knitr::kable()
-
-## -----------------------------------------------------------------------------
-results <- monetize(
-  impact = 1151,
-  valuation = 100
-)
-
-## -----------------------------------------------------------------------------
-cba <- cba(
-    output_attribute = results_pm_copd,
-    valuation = 50000,
-    cost = 100000000,
-    discount_shape = "exponential",
-    discount_rate_benefit = 0.03,
-    discount_rate_cost = 0.03,
-    n_years_benefit = 5,
-    n_years_cost = 5
-)
-
-## -----------------------------------------------------------------------------
-cba$cba_main |>  
-  dplyr::select(benefit, cost, net_benefit) |> 
-  knitr::kable()
-
-## ----echo=FALSE, eval=TRUE, include=FALSE-------------------------------------
-rm(cba)
-
-## -----------------------------------------------------------------------------
 results_pm_yll <- attribute_lifetable(
   year_of_analysis = 2019, 
   health_outcome = "yll",
@@ -419,7 +324,7 @@ results_pm_yll <- attribute_lifetable(
 ## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
 results_pm_yll$health_main |> 
   dplyr::slice_head() |> 
-  dplyr::select(sex, age_group, impact_rounded, erf_ci, exp_ci, bhd_ci) |> 
+  dplyr::select(impact_rounded, erf_ci, exp_ci, bhd_ci) |> 
   knitr::kable()
 
 ## -----------------------------------------------------------------------------
@@ -506,7 +411,7 @@ results_pm_deaths <- attribute_lifetable(
 ## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
 results_pm_deaths$health_main |> 
   dplyr::slice_head() |> 
-  dplyr::select(sex, age_group, impact_rounded, erf_ci, exp_ci, bhd_ci) |> 
+  dplyr::select(impact_rounded, erf_ci, exp_ci, bhd_ci) |> 
   knitr::kable()
 
 ## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
@@ -565,7 +470,59 @@ results_daly$health_main |>
 rm(results_daly, results_pm_yll, results_pm_copd_yld)
 
 ## -----------------------------------------------------------------------------
-results_pm_copd <- attribute_health(
+scenario_A <- attribute_health(
+    exp_central = 8.85,   # EXPOSURE 1
+    cutoff_central = 5, 
+    bhd_central = 25000,
+    approach_risk = "relative_risk",
+    erf_shape = "log_linear",
+    rr_central = 1.118,
+    rr_increment = 10)
+
+## -----------------------------------------------------------------------------
+scenario_B <- attribute_health(
+    exp_central = 6,     # EXPOSURE 2
+    cutoff_central = 5, 
+    bhd_central = 25000,
+    approach_risk = "relative_risk",
+    erf_shape = "log_linear",
+    rr_central = 1.118,
+    rr_increment = 10)
+
+## -----------------------------------------------------------------------------
+scenario_B <- attribute_mod(
+  output_attribute = scenario_A, 
+  exp_central = 6
+)
+
+## -----------------------------------------------------------------------------
+
+results_comparison <- compare(
+  approach_comparison = "delta", # or "pif" (population impact fraction)
+  output_attribute_scen_1 = scenario_A,
+  output_attribute_scen_2 = scenario_B
+)
+
+## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+# results_comparison$health_main
+
+## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
+results_comparison[["health_main"]] |> 
+  dplyr::select(
+    impact, impact_rounded,
+    impact_scen_1, impact_scen_2,
+    bhd,
+    dplyr::starts_with("exp_"),
+    -dplyr::starts_with("exp_ci"), # remove col "exp_ci"
+    dplyr::starts_with("rr_con")) |> 
+  dplyr::slice_head() |> 
+  knitr::kable()
+
+## ----echo=FALSE, eval=TRUE, include=FALSE-------------------------------------
+rm(results_comparison, scenario_A, scenario_B)
+
+## -----------------------------------------------------------------------------
+results_pm <- attribute_health(
   erf_shape = "log_linear",
   rr_central = 1.369, 
   rr_increment = 10,
@@ -574,22 +531,22 @@ results_pm_copd <- attribute_health(
   bhd_central = 30747
 ) 
 
-results_no2_copd <- attribute_mod(
-  output_attribute = results_pm_copd,
+results_no2 <- attribute_mod(
+  output_attribute = results_pm,
   exp_central = 10.9,
   rr_central = 1.031
 )
 
 results_multiplicative <- multiexpose(
-  output_attribute_exp_1 = results_pm_copd,
-  output_attribute_exp_2 = results_no2_copd,
+  output_attribute_exp_1 = results_pm,
+  output_attribute_exp_2 = results_no2,
   exp_name_1 = "pm2.5",
   exp_name_2 = "no2",
   approach_multiexposure = "multiplicative"
 )
 
 ## ----echo=FALSE, eval=TRUE, include=FALSE-------------------------------------
-rm(results_no2_copd, results_pm_copd)
+rm(results_no2, results_pm)
 
 ## ----eval=FALSE, include=TRUE, echo=TRUE--------------------------------------
 # results_multiplicative$health_main
@@ -601,6 +558,104 @@ results_multiplicative$health_main |>
 
 ## ----eval=TRUE, include=FALSE, echo=FALSE-------------------------------------
 rm(results_multiplicative)
+
+## -----------------------------------------------------------------------------
+#setting up function parameters
+threshold_effect <- 45
+RR <- 1.055
+threshold_calculation <- 55
+rr_increment <- 10
+
+# define categorical function, the ifelse condition enables the case distinction
+erf_function <- function(c){
+  output <- ifelse(c<threshold_calculation, 1, exp((log(RR)/rr_increment)*(c-threshold_effect)))
+  return(output)
+}
+# attribute_health
+results_catERF_different_calc_thesh <- healthiar::attribute_health(
+  approach_risk = "relative_risk",
+  erf_eq_central = erf_function,
+  prop_pop_exp = c(300000,200000,150000,120000,100000,70000,60000)/10000000,
+  exp_central = c(47,52,57,62,67,72,77),
+  cutoff_central=0,
+  bhd_central=50000)$health_main$impact_rounded
+
+## ----fig.alt="ERF curve", eval=TRUE, include=TRUE, echo=FALSE-----------------
+
+
+
+
+# Evaluate exp_central points
+x <- c(47,52,57,62,67,72,77) # central exposure values
+y <- erf_function(x)
+
+# Generate finer x-values
+x_dense <- seq(min(x), max(x), length.out = 200)
+# Evaluate exp_central points (finer version)
+y_dense <- erf_function(x_dense)
+
+## Plot
+plot(x,
+     y # main = "User-defined ERF"
+     ,
+     main = "",
+     xlab = "Exposure",
+     ylab = "Relative risk",
+     col = "blue",
+     pch = 19)
+
+lines(x_dense,y_dense,col = "red",lwd = 2)
+
+legend("topleft",
+       legend = c("Original points", "Categorical ERF curve"),
+       col = c("blue", "red"),
+       pch = c(19, NA),
+       lty = c(NA, 1),
+       lwd = c(NA, 2))
+
+
+## -----------------------------------------------------------------------------
+monetized_pm_copd <- monetize(
+    output_attribute = results_pm_copd,
+    discount_shape = "exponential",
+    discount_rate = 0.03,
+    n_years = 5,
+    valuation = 50000 # E.g. EURO
+)
+
+## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+# monetized_pm_copd$monetization_main
+
+## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
+monetized_pm_copd$monetization_main |> 
+  select(erf_ci, monetized_impact) |> 
+  knitr::kable()
+
+## -----------------------------------------------------------------------------
+results <- monetize(
+  impact = 1151,
+  valuation = 100
+)
+
+## -----------------------------------------------------------------------------
+cba <- cba(
+    output_attribute = results_pm_copd,
+    valuation = 50000,
+    cost = 100000000,
+    discount_shape = "exponential",
+    discount_rate_benefit = 0.03,
+    discount_rate_cost = 0.03,
+    n_years_benefit = 5,
+    n_years_cost = 5
+)
+
+## -----------------------------------------------------------------------------
+cba$cba_main |>  
+  dplyr::select(benefit, cost, net_benefit) |> 
+  knitr::kable()
+
+## ----echo=FALSE, eval=TRUE, include=FALSE-------------------------------------
+rm(cba)
 
 ## ----eval=TRUE, include=TRUE, echo=TRUE---------------------------------------
 mdi <- prepare_mdi(
@@ -623,10 +678,10 @@ mdi$mdi_main |>
   dplyr::select(geo_id_micro, MDI, MDI_index) |> 
   knitr::kable()
 
-## ----eval=TRUE, include=TRUE, echo=TRUE---------------------------------------
+## ----fig.alt="Boxplot of Normalized Indicators and MDI", eval=TRUE, include=TRUE, echo=TRUE----
 eval(mdi$mdi_detailed$boxplot)
 
-## ----eval=TRUE, include=TRUE, echo=TRUE---------------------------------------
+## ----fig.alt="Histogram of MDI with normal curve", eval=TRUE, include=TRUE, echo=TRUE----
 eval(mdi$mdi_detailed$histogram)
 
 ## ----eval=TRUE, include=FALSE, echo=FALSE-------------------------------------

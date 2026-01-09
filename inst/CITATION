@@ -1,23 +1,19 @@
-# Pull authors and contributors from Authors@R
-authors <- eval(parse(text = meta$`Authors@R`))
-main_authors <- authors[vapply(authors$role, function(x) any(x %in% c("aut","cre")), logical(1))]
-contributors <- authors[vapply(authors$role, function(x) "ctb" %in% x, logical(1))]
-
-# Format names manually to avoid ORCID
-format_names <- function(persons) {
-  sapply(persons, function(p) {
-    paste(p$given, p$family)
-  })
-}
-
-main_authors_text <- format_names(main_authors)
-contributors_text <- paste("Contributors:", paste(format_names(contributors), collapse = ", "))
+citHeader("To cite package 'healthiar' in publications use:")
 
 bibentry(
-  bibtype  = "Manual",
-  title    = paste0("healthiar: ", meta$Title),
-  author   = main_authors,
-  year     = 2025,
-  note     = paste0(contributors_text, ". R package version: ", meta$Version),
-  url      = "https://github.com/SwissTPH/healthiar"
-)
+  bibtype = "Manual",
+  title   = "healthiar: Quantifying and Monetizing Health Impacts Attributable to Exposure",
+  author  = as.person(c(
+    "Alberto Castro",
+    "Axel Luyten"
+  )),
+  year    = "2026",
+  note    = paste(
+    "R package version 0.2.2.",
+    "Contributors: Arno Pauwels, Liliana Vazquez Fernandez, Gianni Ardielli,",
+    "Iracy Pimenta, Carl Baravelli, Vanessa Gorasso, Susanne Breitner, Maria Lepnurm,",
+    "Andreia Novais, Maria Jose Rueda Lopez,  Ana Barbosa,",
+    "Joao Vasco Santos, Anette Kocbach Bolling."
+    ),
+  url     = "https://CRAN.R-project.org/package=healthiar"
+  )
