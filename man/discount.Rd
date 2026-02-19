@@ -8,13 +8,13 @@ discount(
   output_attribute = NULL,
   impact = NULL,
   discount_rate = NULL,
-  n_years = 1,
+  n_years = NULL,
   discount_shape = NULL,
   inflation_rate = NULL
 )
 }
 \arguments{
-\item{output_attribute}{\code{List} produced by \code{healthiar::attribute()} or \code{healthiar::compare()} as results.}
+\item{output_attribute}{\code{List} produced by \code{healthiar::attribute_health()}, \code{healthiar::attribute_lifetable()} or \code{healthiar::compare()} as results.}
 
 \item{impact}{\code{Numberic value} referring to the health impacts to be monetized (without attribute function). If a \code{Numberic vector} is entered multiple assessments (by year) will be carried out. Be aware that the value for year 0 (current) must be entered, while n_years does not include the year 0. Thus, length of impact = n_years + 1.}
 
@@ -22,7 +22,7 @@ discount(
 
 \item{n_years}{\code{Numeric value} referring to number of years in the future to be considered in the discounting and/or inflation. Be aware that the year 0 (without discounting/inflation, i.e. the present) is not be counted here. If a vector is entered in the argument impact, n_years does not need to be entered (length of impact = n_years + 1).}
 
-\item{discount_shape}{\code{String} referring to the assumed equation for the discount factor. By default: "exponential". Otherwise: "hyperbolic_harvey_1986" or "hyperbolic_mazur_1987".}
+\item{discount_shape}{\code{String} referring to the assumed equation for the discount factor. By default: \code{"exponential"}. Otherwise: \code{"hyperbolic_harvey_1986"} or \code{"hyperbolic_mazur_1987"}.}
 
 \item{inflation_rate}{\code{Numeric value} between 0 and 1 referring to the annual inflation (increase of prices). Only to be entered if nominal (not real) discount rate is entered in the function. Default value = NULL (assuming no nominal discount rate).}
 }
@@ -47,6 +47,25 @@ If the argument \code{output_attribute} was specified, then the two results elem
 \description{
 This function calculates discounted health impacts (without valuation).
 }
+\details{
+\strong{Methodology}
+
+This function applies a discount \insertCite{Frederick2002_jel,Harvey1986_ms,Mazur1987_book}{healthiar},
+optionally with inflation \insertCite{Brealey2023_book}{healthiar},
+to attributable health impacts into the future.
+
+From an epidemiological perspective, the attributable health impacts
+cannot be discounted (or inflated), only economic costs/benefits can.
+However, in some economic analyses the attributable health impacts are discounted (and/or inflated)
+as a previous step to valuating them. For this specific purpose, this function is offered.
+
+
+Detailed information about the methodology (including equations)
+is available in the package vignette.
+More specifically, see chapters:
+\itemize{
+ \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#monetization}{Monetization}}
+}
 \examples{
 # Goal: discount attributable health impacts
 results <- discount(
@@ -56,6 +75,17 @@ results <- discount(
   n_years = 20
 )
 results$monetization_main$monetized_impact
+
+
+}
+\references{
+\insertAllCited{}
+}
+\seealso{
+\itemize{
+  \item Upstream: \code{\link{attribute_health}}, \code{\link{attribute_health}}
+  \item Alternative: \code{\link{monetize}}
+}
 }
 \author{
 Alberto Castro & Axel Luyten

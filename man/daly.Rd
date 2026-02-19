@@ -29,7 +29,21 @@ This function returns a \code{list} containing:
  }
 }
 \description{
-This function calculates the disability-adjusted life years (DALY) attributable to the exposure to an environmental stressor by adding the two DALY components YLL and YLD.
+This function quantifies the attributable disability-adjusted life years (DALY)
+by summing the two DALY components:
+years of life lost (YLL) and years lived with disability (YLD).
+}
+\details{
+\strong{Methodology}
+
+This function sums the years of life lost (YLL) and years lived with disability (YLD)
+to obtain the disability-adjusted lost years (DALY) \insertCite{GBD2020_tl}{healthiar}.
+
+Detailed information about the methodology (including equations)
+is available in the package vignette.
+More specifically, see chapters:
+\itemize{
+ \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#dalys}{dalys}}
 }
 \examples{
 # Goal: obtain DALY (disability-adjusted life years) from two existing \code{attribute_...} outputs
@@ -72,6 +86,16 @@ results <- daly(
 # Attributable impact in DALY
 results$health_main |>
   dplyr::select(impact, impact_yll, impact_yld)
+
+
+}
+\references{
+\insertAllCited{}
+}
+\seealso{
+\itemize{
+  \item Upstream: \code{\link{attribute_health}}, \code{\link{attribute_lifetable}}
+}
 }
 \author{
 Alberto Castro & Axel Luyten

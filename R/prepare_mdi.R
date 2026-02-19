@@ -23,31 +23,34 @@
 
 # DETAILS ######################################################################
 #' @details
-#' The function outputs Cronbach's \eqn{\alpha}.
-#' \describe{
-#'   \item{\eqn{\alpha \geq} 0.9}{Excellent reliability}
-#'   \item{0.8 \eqn{\leq \alpha <} 0.9}{Good reliability}
-#'   \item{0.7 \eqn{\leq \alpha <} 0.8}{Acceptable reliability}
-#'   \item{0.6 \eqn{\leq \alpha <} 0.7}{Questionable reliability}
-#'   \item{\eqn{\alpha} < 0.6}{Poor reliability}
-#' }
-#' @details
-#' Data completeness and imputation: ensure the dataset is as complete as possible. You can try to
-#' impute missing data:
+#'
+#' \strong{Methodology}
+#'
+#' This function condenses socio-economic indicators into
+#' a multiple deprivation index (MDI) \insertCite{Mogin2025_ejph}{healthiar}.
+#' The reliability of the MDI is assessed using Cronbach's alpha \insertCite{Cronbach1951_p}{healthiar}.
+#'
+#' Detailed information about the methodology (including equations)
+#' is available in the package vignette.
+#' More specifically, see chapters:
 #' \itemize{
-#'   \item Time-Based Imputation: Use linear regression based on historical trends if prior years'
-#'   data is complete.
-#'   \item Indicator-Based Imputation: Use multiple linear regression if the missing indicator
-#'   correlates strongly with others.
-#' }
-#' Imputation models should have an R^2 greater than or equal to 0.7. If R^2 lower than 0.7,
-#' consider alternative data sources or methods.
-#' @details
-#' See the example below for how to reproduce the boxplots and the histogram after the `prepare_mdi` function call.
-
+#'  \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#multiple-deprivation-index}{Multiple deprivation index}}
+#'
+#'
+#' \strong{Data completeness and imputation}
+#'
+#' Ensure the data set is as complete as possible. Otherwise, you can try to impute missing data,
+#' but R^2 should be greater than or equal to 0.7.
+#'
+#' \strong{Plots}
+#'
+#' See the example below for how to reproduce the box plots and
+#' the histogram after the \code{prepare_mdi} function call.
+#'
 # VALUE ########################################################################
 #' @return
 #' This function returns a \code{list} containing
+#'
 #' 1) \code{mdi_main} (\code{tibble}) with the columns (selection);
 #' \itemize{
 #'   \item \code{geo_id_micro} containing the \code{numeric} geo id's
@@ -55,6 +58,7 @@
 #'   \item \code{MDI_index} \code{numeric} decile based on values in the column \code{MDI}
 #'   \item additional columns containing the function input data
 #' }
+#'
 #' 2) \code{mdi_detailed} (\code{list}) with several elements for the internal consistency check of the BEST-COST
 #'   Multidimensional Deprivation Index.
 #' \itemize{
@@ -89,9 +93,21 @@
 #' # Reproduce plots after the function call
 #' eval(results$mdi_detailed$boxplot)
 #' eval(results$mdi_detailed$histogram)
-
-#' @author Alberto Castro & Axel Luyten
-
+#'
+#'
+#' @seealso
+#' \itemize{
+#'   \item Downstream: \code{\link{socialize}}
+#' }
+#'
+#'
+#' @references
+#'
+#' \insertAllCited{}
+#'
+#'
+#' @author Carl Baravelli, Vanessa Gorasso, Alberto Castro & Axel Luyten
+#'
 #' @export
 
 

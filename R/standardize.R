@@ -3,16 +3,44 @@
 # DESCRIPTION ##################################################################
 #' @description
 #' This function obtains age-standardized health impacts based on multiple age-group specific assessments
-
+#'
 # ARGUMENTS ####################################################################
 #' @inheritParams socialize
+#'
+#'
+# DETAILS ######################################################################
+#' @details
+#'
+#' \strong{Methodology}
+#'
+#' This function applies the direct method of standardization,
+#' where the age-specific rates observed in a study population are
+#' applied to a standard (reference) population distribution.
+#'
+#' For age standardization in health impact assessments,
+#' the World Health Organization \insertCite{Ahmad2001_report}{healthiar} and
+#' the Global Burden of Disease study \insertCite{GBD2020_tldemo}{healthiar}
+#' provide the relevant information on this topic.
+#'
+#'
+#' Detailed information about the methodology (including equations)
+#' is available in the package vignette.
+#' More specifically, see chapters:
+#' \itemize{
+#'  \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#standardization}{Standardization}}
+#'
+#'
+#' @details
+#' This function works after running \code{attribute_health()} or \code{attribute_lifetable()} functions.
+#' If you want to use it in combination with compare(),
+#' please standardize first the results of attribute functions and then compare.
 
 # VALUE ########################################################################
 #' @returns
 #' This function returns a \code{list} containing:
-#' @returns
+#'
 #' 1) \code{health_main} (\code{tibble}) containing the age-standardized main results;
-#' @returns
+#'
 #' 2) \code{health_detailed} (\code{tibble}) containing the results per age group.
 
 # EXAMPLES #####################################################################
@@ -33,14 +61,25 @@
 #'   age_group = c("below_40", "above_40"),
 #'   ref_prop_pop = c(0.5, 0.5)
 #' )
-#' results$health_detailed$impact_per_100k_inhab # age group-specific impact rate
+#' results$health_detailed$results_raw$impact_per_100k_inhab # age group-specific impact rate
 #' results$health_main$impact_per_100k_inhab # age-standardized impact rate
-
+#'
+#'
+#' @seealso
+#' \itemize{
+#'   \item Upstream:
+#'     \code{\link{attribute_health}}, \code{\link{attribute_lifetable}}
+#' }
+#'
+#'
+#' @references
+#'
+#' \insertAllCited{}
+#'
+#'
 #' @author Alberto Castro & Axel Luyten
-
+#'
 #' @export
-
-
 
 standardize <- function(output_attribute,
                         age_group,
@@ -48,8 +87,14 @@ standardize <- function(output_attribute,
 
   impact_by_age_group <- output_attribute$health_detailed$results_by_age_group
 
-
   if(base::is.null(ref_prop_pop)){
+
+    ## Compile input data
+    ## without social component
+    input_data <-
+      output_attribute$health_detailed$results_by_age_group |>
+      dplyr::select(
+        dplyr::any_of(c("geo_id_micro", "age_group", "population")))
 
     ref_prop_pop <-
       get_ref_prop_pop(df = input_data)$ref_prop_pop
@@ -114,9 +159,10 @@ standardize <- function(output_attribute,
       pop_fraction = base::sum(pop_fraction),
       population = base::sum(population))
 
-  output<-
+  output <-
     base::list(health_main = impact_std_sum,
-               health_detailed = impact_std_by_age_group)
+               health_detailed = c(output_attribute$health_detailed,
+                                   list(impact_std_by_age_group = impact_std_by_age_group)))
 
   return(output)
 

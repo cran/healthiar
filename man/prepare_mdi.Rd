@@ -16,7 +16,7 @@ prepare_mdi(
 )
 }
 \arguments{
-\item{geo_id_micro}{\code{Numeric vector} or \code{string vector} specifying the unique ID codes of each geographic area considered in the assessment (\code{geo_id_micro}) Argument must be entered for iterations. See Details for more info.}
+\item{geo_id_micro}{\code{Numeric vector} or \code{string vector} specifying the unique ID codes of each geographic area considered in the assessment (\code{geo_id_micro}).}
 
 \item{edu}{\code{Numeric vector} indicating educational attainment as \% of individuals
 (at the age 18 or older) without a high school diploma (ISCED 0-2) per geo unit}
@@ -40,6 +40,7 @@ Default: \code{TRUE}.}
 }
 \value{
 This function returns a \code{list} containing
+
 1) \code{mdi_main} (\code{tibble}) with the columns (selection);
 \itemize{
   \item \code{geo_id_micro} containing the \code{numeric} geo id's
@@ -47,6 +48,7 @@ This function returns a \code{list} containing
   \item \code{MDI_index} \code{numeric} decile based on values in the column \code{MDI}
   \item additional columns containing the function input data
 }
+
 2) \code{mdi_detailed} (\code{list}) with several elements for the internal consistency check of the BEST-COST
   Multidimensional Deprivation Index.
 \itemize{
@@ -64,27 +66,28 @@ consistency of the single deprivation indicators using Cronbach's coefficient \e
 other internal consistency checks
 }
 \details{
-The function outputs Cronbach's \eqn{\alpha}.
-\describe{
-  \item{\eqn{\alpha \geq} 0.9}{Excellent reliability}
-  \item{0.8 \eqn{\leq \alpha <} 0.9}{Good reliability}
-  \item{0.7 \eqn{\leq \alpha <} 0.8}{Acceptable reliability}
-  \item{0.6 \eqn{\leq \alpha <} 0.7}{Questionable reliability}
-  \item{\eqn{\alpha} < 0.6}{Poor reliability}
-}
+\strong{Methodology}
 
-Data completeness and imputation: ensure the dataset is as complete as possible. You can try to
-impute missing data:
+This function condenses socio-economic indicators into
+a multiple deprivation index (MDI) \insertCite{Mogin2025_ejph}{healthiar}.
+The reliability of the MDI is assessed using Cronbach's alpha \insertCite{Cronbach1951_p}{healthiar}.
+
+Detailed information about the methodology (including equations)
+is available in the package vignette.
+More specifically, see chapters:
 \itemize{
-  \item Time-Based Imputation: Use linear regression based on historical trends if prior years'
-  data is complete.
-  \item Indicator-Based Imputation: Use multiple linear regression if the missing indicator
-  correlates strongly with others.
-}
-Imputation models should have an R^2 greater than or equal to 0.7. If R^2 lower than 0.7,
-consider alternative data sources or methods.
+ \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#multiple-deprivation-index}{Multiple deprivation index}}
 
-See the example below for how to reproduce the boxplots and the histogram after the `prepare_mdi` function call.
+
+\strong{Data completeness and imputation}
+
+Ensure the data set is as complete as possible. Otherwise, you can try to impute missing data,
+but R^2 should be greater than or equal to 0.7.
+
+\strong{Plots}
+
+See the example below for how to reproduce the box plots and
+the histogram after the \code{prepare_mdi} function call.
 }
 \examples{
 # Goal: create the BEST-COST Multidimensional Deprivation Index for
@@ -108,7 +111,17 @@ results$mdi_main |>
 # Reproduce plots after the function call
 eval(results$mdi_detailed$boxplot)
 eval(results$mdi_detailed$histogram)
+
+
+}
+\references{
+\insertAllCited{}
+}
+\seealso{
+\itemize{
+  \item Downstream: \code{\link{socialize}}
+}
 }
 \author{
-Alberto Castro & Axel Luyten
+Carl Baravelli, Vanessa Gorasso, Alberto Castro & Axel Luyten
 }

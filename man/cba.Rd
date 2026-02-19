@@ -18,7 +18,7 @@ cba(
 )
 }
 \arguments{
-\item{output_attribute}{\code{List} produced by \code{healthiar::attribute()} or \code{healthiar::compare()} as results.}
+\item{output_attribute}{\code{List} produced by \code{healthiar::attribute_health()}, \code{healthiar::attribute_lifetable()} or \code{healthiar::compare()} as results.}
 
 \item{impact_benefit}{\code{Numeric value} referring to the positive health impact as result of a reduction of harmful exposure.}
 
@@ -30,7 +30,7 @@ cba(
 
 \item{inflation_rate}{\code{Numeric value} between 0 and 1 referring to the annual inflation (increase of prices). Only to be entered if nominal (not real) discount rate is entered in the function. Default value = NULL (assuming no nominal discount rate).}
 
-\item{discount_shape}{\code{String} referring to the assumed equation for the discount factor. By default: "exponential". Otherwise: "hyperbolic_harvey_1986" or "hyperbolic_mazur_1987".}
+\item{discount_shape}{\code{String} referring to the assumed equation for the discount factor. By default: \code{"exponential"}. Otherwise: \code{"hyperbolic_harvey_1986"} or \code{"hyperbolic_mazur_1987"}.}
 
 \item{n_years_benefit, n_years_cost}{\code{Numeric value} referring to number of years in the future to be considered in the benefit and cost side (respectively). Years for discounting and/or inflation. Be aware that the year 0 (without discounting/inflation, i.e. the present) is not be counted here. If a vector is entered in the argument impact, n_years does not need to be entered (length of impact = n_years + 1)}
 }
@@ -54,18 +54,28 @@ This function returns a \code{list} containing:
 If the argument \code{output_attribute} was specified, then the two results elements are added to the existing output.
 }
 \description{
-This function performs a cost-benefit analysis
+This function performs a cost-benefit analysis.
+It is assumed that the benefit is caused by the positive health impacts of a policy intervention,
+which generates some costs.
 }
 \details{
-\strong{Equation cost-benefit analysis}
+\strong{Methodology}
 
-\deqn{net\_benefit = benefit - cost}
+This function provides as output three types of cost-benefit indicators
+\insertCite{Boardman2018_book}{healthiar}:
 
-\deqn{cost\_benefit\_ratio = \frac{benefit}{cost}}
+\itemize{
+ \item net benefit
+ \item cost-benefit ratio
+ \item return of investment}
 
-\deqn{return\_on\_investment = \frac{benefit - cost}{cost } \times 100}
 
-For the equations regarding the monetization of the cost and the benefit please see the function documentation of \code{monetize()}.
+Detailed information about the methodology (including equations)
+is available in the package vignette.
+More specifically, see chapters:
+\itemize{
+ \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#cost-benefit-analysis}{cost-benefit analysis}
+ \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#monetization}{monetization}}
 }
 \examples{
 # Goal: performs a cost-benefit analysis using an existing output
@@ -93,6 +103,17 @@ results <- cba(
 
 results$cba_main |>
   dplyr::select(benefit, cost, net_benefit)
+
+
+}
+\references{
+\insertAllCited{}
+}
+\seealso{
+\itemize{
+  \item Upstream: \code{\link{attribute_health}}
+  \item Alternative: \code{\link{monetize}}
+}
 }
 \author{
 Alberto Castro & Axel Luyten

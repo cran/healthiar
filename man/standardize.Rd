@@ -23,6 +23,29 @@ This function returns a \code{list} containing:
 \description{
 This function obtains age-standardized health impacts based on multiple age-group specific assessments
 }
+\details{
+\strong{Methodology}
+
+This function applies the direct method of standardization,
+where the age-specific rates observed in a study population are
+applied to a standard (reference) population distribution.
+
+For age standardization in health impact assessments,
+the World Health Organization \insertCite{Ahmad2001_report}{healthiar} and
+the Global Burden of Disease study \insertCite{GBD2020_tldemo}{healthiar}
+provide the relevant information on this topic.
+
+
+Detailed information about the methodology (including equations)
+is available in the package vignette.
+More specifically, see chapters:
+\itemize{
+ \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#standardization}{Standardization}}
+
+This function works after running \code{attribute_health()} or \code{attribute_lifetable()} functions.
+If you want to use it in combination with compare(),
+please standardize first the results of attribute functions and then compare.
+}
 \examples{
 # Goal: age-standardize two age group-specific impacts
 output_attribute <- attribute_health(
@@ -40,8 +63,19 @@ results <- standardize(
   age_group = c("below_40", "above_40"),
   ref_prop_pop = c(0.5, 0.5)
 )
-results$health_detailed$impact_per_100k_inhab # age group-specific impact rate
+results$health_detailed$results_raw$impact_per_100k_inhab # age group-specific impact rate
 results$health_main$impact_per_100k_inhab # age-standardized impact rate
+
+
+}
+\references{
+\insertAllCited{}
+}
+\seealso{
+\itemize{
+  \item Upstream:
+    \code{\link{attribute_health}}, \code{\link{attribute_lifetable}}
+}
 }
 \author{
 Alberto Castro & Axel Luyten

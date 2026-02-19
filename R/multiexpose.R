@@ -11,12 +11,23 @@
 
 # DETAILS ######################################################################
 #' @details
-#' \strong{Sources}
-#' @details
-#' For more information on the additive and combined approaches see Steenland & Armstrong 2006 (https://doi.org/10.1097/01.ede.0000229155.05644.43).
-#' @details
-#' For more information on the multiplicative approach see Jerrett et al. 2013 (https://doi.org/10.1164/rccm.201303-0609OC).
-
+#'
+#' \strong{Methodology}
+#'
+#' This function can add up the attributable health impacts from correlated exposures
+#' applying one of the following methods \insertCite{Strak2024_report}{healthiar}:
+#' \itemize{
+#'  \item Additive \insertCite{Steenland2006-e}{healthiar}
+#'  \item Multiplicative \insertCite{Jerrett2013-oup}{healthiar}
+#'  \item Combined \insertCite{Steenland2006-e}{healthiar}
+#'  }
+#'
+#' Detailed information about the methodology (including equations)
+#' is available in the package vignette.
+#' More specifically, see chapters:
+#' \itemize{
+#'  \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#two-correlated-exposures}{Two correlated exposures}}
+#'
 # VALUE ########################################################################
 #' @inherit attribute_master return
 
@@ -49,9 +60,20 @@
 #'   approach_multiexposure = "multiplicative"
 #' )
 #' results$health_main$impact
-
+#'
+#'
+#' @seealso
+#' \itemize{
+#'   \item Upstream: \code{\link{attribute_health}}, \code{\link{attribute_lifetable}}
+#' }
+#'
+#' @references
+#'
+#' \insertAllCited{}
+#'
+#'
 #' @author Alberto Castro & Axel Luyten
-
+#'
 #' @export
 
 

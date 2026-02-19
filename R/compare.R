@@ -2,7 +2,8 @@
 
 # DESCRIPTION ##################################################################
 #' @description
-#' This function calculates the health impacts between two scenarios (e.g. before and after a intervention in a health impact assessments) using either the delta or pif approach.
+#' This function calculates the health impacts between two scenarios
+#' (e.g. before and after a intervention in a health impact assessments) using either the delta or pif approach.
 
 # ARGUMENTS ####################################################################
 #' @param output_attribute_scen_1 Scenario 1 as in the output of attribute()
@@ -11,35 +12,54 @@
 
 # DETAILS ######################################################################
 #' @details
-#' Note that the PIF comparison approach assumes same baseline health data for scenario 1 and 2 (e.g. comparison of two scenarios at the same time).
-#' @details
-#' \strong{Equations population impact fraction (PIF)}
-#' @details The Population Impact Fraction (PIF) is defined as the proportional change in disease or mortality when exposure to a risk factor is changed (for instance due to an intervention). The most general equation describing this mathematically is an integral form (WHO 2003a, https://www.who.int/publications/i/item/9241546204; WHO 2003b, https://doi.org/10.1186/1478-7954-1-1):
-#' \deqn{PIF = \frac{\int RR(x)PE(x)dx - \int RR(x)PE'(x)dx}{\int RR(x)PE(x)dx}}
-#' @details Where:
-#' @details x     = exposure level
-#' @details PE(x) = population distribution of exposure
-#' @details PE'(x) = alternative population distribution of exposure
-#' @details RR(x) = relative risk at exposure level compared to the reference level
-#' @details
-#' If the population exposure is described as a categorical rather than continuous exposure, the integrals in equation (5) may be converted to sums, resulting in the following equations for the PIF (WHO 2003a, https://www.who.int/publications/i/item/9241546204; WHO 2003b, https://doi.org/10.1186/1478-7954-1-1):
-#' \deqn{PIF = \frac{\sum RR_{i} \times PE_{i} - \sum RR_{i}PE'_{i}}{\sum RR_{i}PE_{i}}}
-#' @details Where:
-#' @details i     = is the exposure category (e.g. in bins of 1 \eqn{\mu g/m^3} PM2.5 or 5 dB noise exposure)
-#' @details \eqn{PE_i} = fraction of population in exposure category i
-#' @details \eqn{PE'_i} = fraction of population in category i for alternative (ideal) exposure scenario
-#' @details \eqn{RR_i} = relative risk for exposure category level i compared to the reference level
-#' @details
-#' Finally, if the exposure is provided as the population weighted mean concentration (PWC), the equation for the PIF is reduced to:
-#' \deqn{PIF = \frac{RR_{PWC} - RR_{alt PWC}}{RR_{PWC}}}
-#' @details Where:
-#' @details \eqn{RR_{PWC}} = relative risk associated with the population weighted mean exposure
-#' @details \eqn{RR_{PWC}} = relative risk associated with the population weighted mean for the alternative exposure scenario
-#' @details
-#' \strong{Delta comparison approach}
-#' @details
-#' With the delta comparison the difference between two scenarios is obtained by subtraction. The delta approach is suited for all comparison cases, and specifically for comparison of a situation now with a situation in the future.
-
+#'
+#' \strong{Methodology}
+#' This function compares the attributable health impacts in scenario 1 with scenario 2.
+#' It can use two approaches:
+#' \itemize{
+#'  \item{Delta: Subtraction of health impacts in the two scenarios (two PAF) \insertCite{WHO2014_book}{healthiar}}
+#'  \item{Potential impact fraction (PIF): Single PIF for both scenarios \insertCite{WHO2003_report,Murray2003_spbm,Askari2020_ijph}{healthiar}}}
+#'
+#'
+#' Detailed information about the methodology (including equations)
+#' is available in the package vignette.
+#' More specifically, see chapters:
+#' \itemize{
+#'  \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#comparison-of-two-health-scenarios}{comparison of two health scenarios}}
+#'
+#'
+#' \strong{Specifications of the comparison approach}
+#'
+#' Please, note that the PIF comparison approach assumes same baseline health data for scenario 1 and 2
+#' (e.g. comparison of two scenarios at the same time point).
+#' With the delta comparison approach, the difference between two scenarios is obtained by subtraction.
+#' The delta approach is suited for all comparison cases,
+#' allowing a comparison of a situation now with a situation in the future.
+#'
+#'
+#' IMPORTANT: If your aim is to quantify health impacts from a policy intervention,
+#' be aware that you should use the same year of analysis
+#' and therefore same health baseline data
+#' in both scenarios. The only variable that should change is the exposure
+#' (as a result of the intervention).
+#'
+#'
+#' \strong{Comparing DALY}
+#'
+#' If you want to use \code{compare()} DALY with \code{daly()},
+#' do not enter the output of \code{daly()} in \code{compare()}.
+#' Instead, follow these steps:
+#'
+#' 1) use \code{compare()} for YLL and YLD separately
+#'
+#' 2) use \code{daly()} inserting the output of both compare()
+#'
+#' Alternatively, you can use \code{attribute_health}
+#' to quantify DALY entering DALY in the argument \code{bhd_central}
+#' and then use \code{compare()}
+#'
+#'
+#'
 # VALUE ########################################################################
 #' @returns
 #' This function returns a \code{list} containing:
@@ -94,7 +114,7 @@
 #'   dplyr::select(impact, impact_scen_1, impact_scen_2) |>
 #'   print()
 #'
-#' # Goal: comparison of two scenarios with population impact fraction (pif) approach
+#' # Goal: comparison of two scenarios with potential impact fraction (pif) approach
 #' output_attribute_scen_1 <- attribute_health(
 #'   exp_central = 8.85,   # EXPOSURE 1
 #'   cutoff_central = 5,
@@ -120,9 +140,23 @@
 #' )
 #' # Inspect the difference, stored in the impact column
 #' results$health_main$impact
-
+#'
+#'
+#' @seealso
+#' \itemize{
+#'   \item Upstream: \code{\link{attribute_health}}, \code{\link{attribute_mod}},
+#'     \code{\link{standardize}},
+#'   \item Downstream: \code{\link{daly}}
+#' }
+#'
+#'
+#' @references
+#'
+#' \insertAllCited{}
+#'
+#'
 #' @author Alberto Castro & Axel Luyten
-
+#'
 #' @export
 
 
@@ -259,9 +293,11 @@ compare <-
 
       # Error if population and bhd are different in the scenarios
       # (only applicable for PIF)
-      error_if_var_is_not_identical(var = "population")
 
-      error_if_var_is_not_identical(var = "bhd")
+      for(v in c("population", "bhd", "year_of_analysis")) {
+        error_if_var_is_not_identical(var = v)
+      }
+
 
       # PIF and absolute risk are not compatible
       if(is_absolute_risk){
@@ -282,6 +318,20 @@ compare <-
           df_1 = results_raw_scen_1,
           df_2 = results_raw_scen_2,
           except = scenario_specific_arguments)
+
+      # If different year of analysis
+      # Add year as joining column
+      # Otherwise too large table
+
+      if( is_lifetable){
+        if(! base::unique(results_raw_scen_1$year_of_analysis) ==
+          base::unique(results_raw_scen_2$year_of_analysis)){
+
+          joining_columns_output <- c(joining_columns_output, "year")
+        }
+      }
+
+
 
       # Merge the result tables by common columns
       results_raw <-
@@ -346,7 +396,8 @@ compare <-
       }
 
 
-    # Organize output
+    # Organize output ##############################
+
     # Classify the individual results of each scenario in delta and pif method
     # in a list
 
@@ -361,8 +412,6 @@ compare <-
 
     output[["health_detailed"]][["scen_1"]] <- results_raw_scen_1
     output[["health_detailed"]][["scen_2"]] <- results_raw_scen_2
-
-
 
 
     return(output)

@@ -17,19 +17,32 @@ library(dplyr)
 library(purrr)
 library(tidyr)
 library(knitr)
+library(terra)
+library(sf)
 
-## -----------------------------------------------------------------------------
-results_pm_copd <- attribute_health(
-  erf_shape = "log_linear", # shape of the exposure-response function (ERF)
-  rr_central = 1.369, # relative risk (RR) central estimate
-  rr_increment = 10,  # increment for which relative risk is valid (in \\mu g / m^3)
-  exp_central = 8.85, # PM2.5 exposure (in \\mu g / m^3) (here: population-weighted)
-  cutoff_central = 5, # cutoff (in \\mu g / m^3) below which no health effects occur 
-  bhd_central = 30747 # baseline health data (BHD; here: COPD incidence)
-)
+## ----eval=FALSE, include=TRUE-------------------------------------------------
+# results_pm_copd <- attribute_health(
+#   exp_central = 8.85,
+#   rr_central = 1.369,
+#   rr_increment = 10,
+#   erf_shape = "log_linear",
+#   cutoff_central = 5,
+#   bhd_central = 30747
+# )
+
+## ----eval=FALSE, include=TRUE-------------------------------------------------
+# results_pm_copd <- attribute_health(
+#   erf_shape = "log_linear",
+#   rr_central = exdat_pm$relative_risk,
+#   rr_increment = 10,
+#   exp_central = exdat_pm$mean_concentration,
+#   cutoff_central = exdat_pm$cut_off_value,
+#   bhd_central = exdat_pm$incidence
+# )
 
 ## ----eval=TRUE, include=TRUE, echo=TRUE---------------------------------------
 results_pm_copd <- attribute_health(
+  approach_risk = "relative_risk", # If you do not call this argument, "relative_risk" will be assigned by default.
   erf_shape = "log_linear",
   rr_central = exdat_pm$relative_risk, 
   rr_increment = 10, 
@@ -67,6 +80,10 @@ results_noise_ha |>
 results_noise_ha[["health_detailed"]][["results_raw"]] |> 
   select(exp_category, exp, pop_exp, impact) |> 
   knitr::kable()
+
+## ----eval=FALSE, include=TRUE, echo=TRUE--------------------------------------
+# erf_eq_central <-
+#   "exp(0.2969*log((pmax(0,c-2.4)/1.9+1))/(1+exp(-(pmax(0,c-2.4)-12)/40.2)))"
 
 ## -----------------------------------------------------------------------------
 results_noise_ha <- attribute_health(
@@ -253,6 +270,8 @@ results_age_group <- attribute_health(
         rr_increment = 10,
         erf_shape = "log_linear"
       )
+
+## -----------------------------------------------------------------------------
 results_age_group$health_detailed$results_by_age_group |> 
   dplyr::select(age_group, impact_rounded, exp, bhd) |> 
   knitr::kable()
@@ -271,6 +290,8 @@ results_sex <- attribute_health(
         rr_increment = 10,
         erf_shape = "log_linear"
       )
+
+## ----eval=TRUE, include=TRUE, echo=TRUE---------------------------------------
 results_sex$health_detailed$results_by_sex |> 
   dplyr::select(sex, impact_rounded, exp, bhd) |> 
   knitr::kable()
@@ -278,27 +299,61 @@ results_sex$health_detailed$results_by_sex |>
 ## ----eval=TRUE, include=FALSE, echo=FALSE-------------------------------------
 rm(results_sex)
 
-## -----------------------------------------------------------------------------
-info <- data.frame(
-  education = rep(c("secondary", "bachelor", "master"), each = 5) # education level
-)
-output_attribute <- attribute_health(
-  rr_central = 1.063,
-  rr_increment = 10,
-  erf_shape = "log_linear",
-  cutoff_central =  0,
-  exp_central = sample(6:10, 15, replace = TRUE),
-  bhd_central = sample(100:500, 15, replace = TRUE),
-  geo_id_micro = c(1:nrow(info)), # (random) ID must be entered
-  info = info
-)
+## ----eval=TRUE, include=TRUE, echo=TRUE---------------------------------------
+output_attribute <- healthiar::attribute_health(
+    rr_central = 1.063,
+    rr_increment = 10,
+    erf_shape = "log_linear",
+    cutoff_central =  0,
+    exp_central = c(6, 7, 8,
+                    7, 8, 9,
+                    8, 9, 10,
+                    9, 10, 11),
+    bhd_central = c(600, 700, 800,
+                    700, 800, 900,
+                    800, 900, 1000,
+                    900, 1000, 1100),
+    geo_id_micro = rep(c("a", "b", "c", "d"), each = 3),
+    info = data.frame(
+      education = rep(c("secondary", "bachelor", "master"), times = 4)) # education level
+  )
+
+## ----eval=TRUE, include=TRUE, echo=TRUE---------------------------------------
 output_stratified <- output_attribute$health_detailed$results_raw |>
-  dplyr::group_by(info_column_1) |>
-  dplyr::summarize(mean_impact = mean(impact)) |>
-  print()
+      dplyr::group_by(info_column_1) |>
+      dplyr::summarize(mean_impact = mean(impact))|>
+      dplyr::pull(mean_impact) |>
+      print()
 
 ## ----eval=TRUE, include=FALSE, echo=FALSE-------------------------------------
-rm(info, output_attribute, output_stratified)
+rm(output_attribute, output_stratified)
+
+## ----eval=TRUE, include=TRUE, echo=TRUE---------------------------------------
+output_attribute <- healthiar::attribute_health(
+    rr_central = 1.063,
+    rr_increment = 10,
+    erf_shape = "log_linear",
+    cutoff_central =  0,
+    age_group = base::rep(c("50_and_younger", "50_plus"), each = 4, times= 2),
+    sex = base::rep(c("female", "male"), each = 2, times = 4),
+    exp_central = c(6, 7, 8, 7, 8, 9, 8, 9,
+                    10, 9, 10, 11, 10, 11, 12, 13),
+    bhd_central = c(600, 700, 800, 700, 800, 900, 800, 900,
+                    1000, 900, 1000, 1100, 1000, 1100, 1200, 1000),
+    geo_id_micro = base::rep(c("a", "b"), each = 8),
+    info = base::data.frame(
+      education = base::rep(c("without_master", "with_master"), times = 8)) # education level
+  )
+
+## ----eval=TRUE, include=TRUE, echo=TRUE---------------------------------------
+output_stratified <- output_attribute$health_detailed$results_raw |>
+      dplyr::group_by(info_column_1) |>
+      dplyr::summarize(mean_impact = mean(impact))|>
+      dplyr::pull(mean_impact) |>
+      print()
+
+## ----eval=TRUE, include=FALSE, echo=FALSE-------------------------------------
+rm(output_attribute, output_stratified)
 
 ## -----------------------------------------------------------------------------
 results_pm_yll <- attribute_lifetable(
@@ -480,8 +535,24 @@ scenario_A <- attribute_health(
     rr_increment = 10)
 
 ## -----------------------------------------------------------------------------
+scenario_B <- attribute_mod(
+  output_attribute = scenario_A, 
+  exp_central = 6
+)
+
+## -----------------------------------------------------------------------------
 scenario_B <- attribute_health(
     exp_central = 6,     # EXPOSURE 2
+    cutoff_central = 5, 
+    bhd_central = 25000,
+    approach_risk = "relative_risk",
+    erf_shape = "log_linear",
+    rr_central = 1.118,
+    rr_increment = 10)
+
+## -----------------------------------------------------------------------------
+scenario_A <- attribute_health(
+    exp_central = 8.85,   # EXPOSURE 1
     cutoff_central = 5, 
     bhd_central = 25000,
     approach_risk = "relative_risk",
@@ -497,7 +568,7 @@ scenario_B <- attribute_mod(
 
 ## -----------------------------------------------------------------------------
 
-results_comparison <- compare(
+results_comparison <- healthiar::compare(
   approach_comparison = "delta", # or "pif" (population impact fraction)
   output_attribute_scen_1 = scenario_A,
   output_attribute_scen_2 = scenario_B
@@ -560,6 +631,56 @@ results_multiplicative$health_main |>
 rm(results_multiplicative)
 
 ## -----------------------------------------------------------------------------
+output_attribute <- attribute_health(
+  rr_central = 1.063,
+  rr_increment = 10,
+  erf_shape = "log_linear",
+  cutoff_central =  0,
+  age_group = c("below_40", "above_40"),
+  exp_central = c(8.1, 10.9),
+  bhd_central = c(1000, 4000),
+  population = c(100000, 500000)
+  )
+
+results <- standardize(
+  output_attribute = output_attribute,
+  age_group = c("below_40", "above_40"),
+  ref_prop_pop = c(0.5, 0.5)
+  )
+
+
+
+## -----------------------------------------------------------------------------
+print(results$health_main$impact_per_100k_inhab)  
+
+## -----------------------------------------------------------------------------
+print(results$health_detailed$results_raw$impact_per_100k_inhab)  
+
+## ----eval=TRUE, include=FALSE, echo=FALSE-------------------------------------
+rm(results)
+
+## -----------------------------------------------------------------------------
+# exdat_pwm_1 = Pollution grid data
+exdat_pwm_1 <- terra::rast(system.file("extdata", "exdat_pwm_1.tif", package = "healthiar"))
+
+# exdat_pwm_2 = Data with the geo units and population data. This is pre-loaded in healthiar.
+# If your raw data are in .gpkg format, you can use e.g.  sf::st_read() 
+
+pwm <- healthiar::prepare_exposure(
+  poll_grid = exdat_pwm_1, # Formal class SpatRaster,
+  geo_units = exdat_pwm_2, # sf of the geographic sub-units
+  population = sf::st_drop_geometry(exdat_pwm_2$population), # population per geographic sub-unit
+  geo_id_macro = sf::st_drop_geometry(exdat_pwm_2$region)) # higher-level IDs to aggregate
+
+## ----echo=FALSE---------------------------------------------------------------
+ knitr::kable(pwm$main)
+
+## ----eval=TRUE, include=FALSE, echo=FALSE-------------------------------------
+rm(exdat_pwm_1)
+rm(exdat_pwm_2)
+rm(pwm)
+
+## -----------------------------------------------------------------------------
 #setting up function parameters
 threshold_effect <- 45
 RR <- 1.055
@@ -581,9 +702,6 @@ results_catERF_different_calc_thesh <- healthiar::attribute_health(
   bhd_central=50000)$health_main$impact_rounded
 
 ## ----fig.alt="ERF curve", eval=TRUE, include=TRUE, echo=FALSE-----------------
-
-
-
 
 # Evaluate exp_central points
 x <- c(47,52,57,62,67,72,77) # central exposure values
@@ -658,6 +776,48 @@ cba$cba_main |>
 rm(cba)
 
 ## ----eval=TRUE, include=TRUE, echo=TRUE---------------------------------------
+ health_impact <- healthiar::attribute_health(
+   age_group = exdat_socialize$age_group,
+   exp_central = exdat_socialize$pm25_mean,
+   cutoff_central = 0,
+   rr_central = exdat_socialize$rr,
+   erf_shape = "log_linear",
+   rr_increment = 10,
+   bhd_central = exdat_socialize$mortality,
+   population = exdat_socialize$population,
+   geo_id_micro = exdat_socialize$geo_unit)
+
+## ----eval=TRUE, include=TRUE, echo=TRUE---------------------------------------
+social_t <- healthiar::socialize(
+  output_attribute = health_impact,
+  age_group = exdat_socialize$age_group, # They have to be the same in socialize() and in attribute_health()
+  ref_prop_pop = exdat_socialize$ref_prop_pop, # Population already provided in output_attribute
+  geo_id_micro = exdat_socialize$geo_unit,
+  social_indicator = exdat_socialize$score,
+  n_quantile = 10,
+  increasing_deprivation = TRUE)
+
+
+## ----eval=TRUE, include=TRUE, echo=TRUE---------------------------------------
+social <- healthiar::socialize(
+  impact = health_impact$health_detailed$results_by_age_group$impact,
+  age_group = exdat_socialize$age_group, # They have to be the same in socialize() and in attribute_health()
+  ref_prop_pop = exdat_socialize$ref_prop_pop,
+  geo_id_micro = exdat_socialize$geo_unit,
+  social_indicator = exdat_socialize$score,
+  population = exdat_socialize$population, # Population has to be provided because no output_attribute
+  n_quantile = 10,
+  increasing_deprivation = TRUE)
+
+
+## ----echo=FALSE---------------------------------------------------------------
+social$social_main |> 
+  dplyr::select(c(parameter, difference_type, 
+                  difference_compared_with, difference_value, 
+                  comment)) |>
+  print()
+
+## ----eval=TRUE, include=TRUE, echo=TRUE---------------------------------------
 mdi <- prepare_mdi(
   geo_id_micro = exdat_prepare_mdi$id,
   edu = exdat_prepare_mdi$edu,
@@ -686,6 +846,39 @@ eval(mdi$mdi_detailed$histogram)
 
 ## ----eval=TRUE, include=FALSE, echo=FALSE-------------------------------------
 rm(mdi)
+
+## ----eval=FALSE, include=TRUE, echo = TRUE------------------------------------
+# exdat_noise |>
+#   (\(df) {
+#     healthiar::attribute_health(
+#       approach_risk = df$risk_estimate_type,
+#       exp_central = df$exposure_mean,
+#       pop_exp = df$exposed,
+#       erf_eq_central = df$erf
+#       )$health_main$impact_rounded
+#     })()
+
+## -----------------------------------------------------------------------------
+exdat_noise |>
+      (\(df) {
+        with(df, healthiar::attribute_health(
+         approach_risk = risk_estimate_type,
+         exp_central = exposure_mean,
+         pop_exp = exposed,
+         erf_eq_central = erf
+         ))$health_main$impact_rounded
+        })()
+
+## ----eval=FALSE, include=TRUE, echo = TRUE------------------------------------
+# exdat_noise %>%
+#   {
+#     healthiar::attribute_health(
+#       approach_risk = .$risk_estimate_type,
+#       exp_central = .$exposure_mean,
+#       pop_exp = .$exposed,
+#       erf_eq_central = .$erf
+#     )$health_main$impact_rounded
+#   }
 
 ## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
 # write.csv(x = results_pm_copd$health_main, file = "exported_results/results_pm_copd.csv")

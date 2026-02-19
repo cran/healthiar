@@ -40,51 +40,54 @@ This function returns a \code{list} containing:
  }
 }
 \description{
-This function calculates the health impacts between two scenarios (e.g. before and after a intervention in a health impact assessments) using either the delta or pif approach.
+This function calculates the health impacts between two scenarios
+(e.g. before and after a intervention in a health impact assessments) using either the delta or pif approach.
 }
 \details{
-Note that the PIF comparison approach assumes same baseline health data for scenario 1 and 2 (e.g. comparison of two scenarios at the same time).
+\strong{Methodology}
+This function compares the attributable health impacts in scenario 1 with scenario 2.
+It can use two approaches:
+\itemize{
+ \item{Delta: Subtraction of health impacts in the two scenarios (two PAF) \insertCite{WHO2014_book}{healthiar}}
+ \item{Potential impact fraction (PIF): Single PIF for both scenarios \insertCite{WHO2003_report,Murray2003_spbm,Askari2020_ijph}{healthiar}}}
 
-\strong{Equations population impact fraction (PIF)}
 
-The Population Impact Fraction (PIF) is defined as the proportional change in disease or mortality when exposure to a risk factor is changed (for instance due to an intervention). The most general equation describing this mathematically is an integral form (WHO 2003a, https://www.who.int/publications/i/item/9241546204; WHO 2003b, https://doi.org/10.1186/1478-7954-1-1):
-\deqn{PIF = \frac{\int RR(x)PE(x)dx - \int RR(x)PE'(x)dx}{\int RR(x)PE(x)dx}}
+Detailed information about the methodology (including equations)
+is available in the package vignette.
+More specifically, see chapters:
+\itemize{
+ \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#comparison-of-two-health-scenarios}{comparison of two health scenarios}}
 
-Where:
 
-x     = exposure level
+\strong{Specifications of the comparison approach}
 
-PE(x) = population distribution of exposure
+Please, note that the PIF comparison approach assumes same baseline health data for scenario 1 and 2
+(e.g. comparison of two scenarios at the same time point).
+With the delta comparison approach, the difference between two scenarios is obtained by subtraction.
+The delta approach is suited for all comparison cases,
+allowing a comparison of a situation now with a situation in the future.
 
-PE'(x) = alternative population distribution of exposure
 
-RR(x) = relative risk at exposure level compared to the reference level
+IMPORTANT: If your aim is to quantify health impacts from a policy intervention,
+be aware that you should use the same year of analysis
+and therefore same health baseline data
+in both scenarios. The only variable that should change is the exposure
+(as a result of the intervention).
 
-If the population exposure is described as a categorical rather than continuous exposure, the integrals in equation (5) may be converted to sums, resulting in the following equations for the PIF (WHO 2003a, https://www.who.int/publications/i/item/9241546204; WHO 2003b, https://doi.org/10.1186/1478-7954-1-1):
-\deqn{PIF = \frac{\sum RR_{i} \times PE_{i} - \sum RR_{i}PE'_{i}}{\sum RR_{i}PE_{i}}}
 
-Where:
+\strong{Comparing DALY}
 
-i     = is the exposure category (e.g. in bins of 1 \eqn{\mu g/m^3} PM2.5 or 5 dB noise exposure)
+If you want to use \code{compare()} DALY with \code{daly()},
+do not enter the output of \code{daly()} in \code{compare()}.
+Instead, follow these steps:
 
-\eqn{PE_i} = fraction of population in exposure category i
+1) use \code{compare()} for YLL and YLD separately
 
-\eqn{PE'_i} = fraction of population in category i for alternative (ideal) exposure scenario
+2) use \code{daly()} inserting the output of both compare()
 
-\eqn{RR_i} = relative risk for exposure category level i compared to the reference level
-
-Finally, if the exposure is provided as the population weighted mean concentration (PWC), the equation for the PIF is reduced to:
-\deqn{PIF = \frac{RR_{PWC} - RR_{alt PWC}}{RR_{PWC}}}
-
-Where:
-
-\eqn{RR_{PWC}} = relative risk associated with the population weighted mean exposure
-
-\eqn{RR_{PWC}} = relative risk associated with the population weighted mean for the alternative exposure scenario
-
-\strong{Delta comparison approach}
-
-With the delta comparison the difference between two scenarios is obtained by subtraction. The delta approach is suited for all comparison cases, and specifically for comparison of a situation now with a situation in the future.
+Alternatively, you can use \code{attribute_health}
+to quantify DALY entering DALY in the argument \code{bhd_central}
+and then use \code{compare()}
 }
 \examples{
 # Goal: comparison of two scenarios with delta approach
@@ -116,7 +119,7 @@ results$health_main |>
   dplyr::select(impact, impact_scen_1, impact_scen_2) |>
   print()
 
-# Goal: comparison of two scenarios with population impact fraction (pif) approach
+# Goal: comparison of two scenarios with potential impact fraction (pif) approach
 output_attribute_scen_1 <- attribute_health(
   exp_central = 8.85,   # EXPOSURE 1
   cutoff_central = 5,
@@ -142,6 +145,18 @@ results <- compare(
 )
 # Inspect the difference, stored in the impact column
 results$health_main$impact
+
+
+}
+\references{
+\insertAllCited{}
+}
+\seealso{
+\itemize{
+  \item Upstream: \code{\link{attribute_health}}, \code{\link{attribute_mod}},
+    \code{\link{standardize}},
+  \item Downstream: \code{\link{daly}}
+}
 }
 \author{
 Alberto Castro & Axel Luyten

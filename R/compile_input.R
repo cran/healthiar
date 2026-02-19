@@ -31,6 +31,7 @@ compile_input <-
   function(input_args, is_lifetable){
 
 
+
     args_for_lifetable <-
       c("approach_exposure", "approach_newborns",
         "year_of_analysis",
@@ -89,7 +90,9 @@ compile_input <-
     input_wo_lifetable  <-
       input_wo_lifetable |>
       dplyr::mutate(
-        .by = c(geo_id_micro, age_group, sex),
+        # Unique values by columns that determine if exposure distribution or no
+        # Including info just in case of subgroup analysis
+        .by = c(geo_id_micro, age_group, sex, dplyr::contains("info")),
         exp_length = dplyr::n(),
         exp_category = dplyr::row_number(),
         exp_type =
@@ -177,7 +180,6 @@ compile_input <-
     ## Add is_lifetable
     input_table <- input_table |>
       dplyr::mutate(is_lifetable = is_lifetable)
-
 
   return(input_table)
 

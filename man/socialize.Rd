@@ -2,7 +2,7 @@
 % Please edit documentation in R/socialize.R
 \name{socialize}
 \alias{socialize}
-\title{Consider socio-economic aspects in healthiar assessments}
+\title{Consider socio-economic aspects in the attributable health impacts}
 \usage{
 socialize(
   output_attribute = NULL,
@@ -25,9 +25,9 @@ socialize(
 
 \item{age_group}{\code{String vector} with the age groups included in the age standardization. The vector refers to age-dependent data in this function and to \code{output_attribute} (if provided).}
 
-\item{geo_id_micro, }{\code{Numeric vector} or \code{string vector} specifying the unique ID codes of each geographic area considered in the assessment (\code{geo_id_micro}) Argument must be entered for iterations. See Details for more info.}
+\item{geo_id_micro, }{\code{Numeric vector} or \code{string vector} specifying the unique ID codes of each geographic area considered in the assessment (\code{geo_id_micro}).}
 
-\item{social_indicator}{\code{Numeric vector} showing the social indicator used for the analysis, e.g. a deprivation score (indicator of economic wealth) for each geographic unit. Based on this and \code{n_quantile}, \code{social_quantile} will be calculated.}
+\item{social_indicator}{\code{Numeric vector} showing the social indicator used for the analysis, e.g. a deprivation score (indicator of economic wealth) for each geographic unit. The length and the values must correspond with \code{geo_id_micro}. If \code{geo_id_micro} is not entered when using argument \code{output_attribute}, \code{social_indicator} must correspond to the column \code{geo_id_micro} in \code{results_by_age_group} of \code{output_attribute}.}
 
 \item{increasing_deprivation}{\code{Boolean} variable (\code{TRUE}/\code{FALSE}) specifying whether an increase in \code{social_indicator} corresponds to an increase (\code{TRUE}) or decrease \code{FALSE} in deprivation. Default: \code{TRUE}.}
 
@@ -43,7 +43,7 @@ socialize(
 
 \item{exp}{\emph{(only if \code{output_attribute} not specified)} \code{Numeric vector} specifying the exposure level(s) to the environmental stressor.}
 
-\item{bhd}{\emph{(only if \code{output_attribute} not specified)} \code{Numeric vector} specifying the baseline health data of the health outcome of interest per age group. See Details for more info.}
+\item{bhd}{\emph{(only if \code{output_attribute} not specified)} \code{Numeric vector} specifying the baseline health data of the health outcome of interest per age group.}
 
 \item{pop_fraction}{\emph{(only if \code{output_attribute} not specified)} \code{Numeric vector} specifying the population attributable fraction by age group and geographic unit.}
 }
@@ -66,7 +66,23 @@ This function returns a \code{list} containing the impact (absolute and relative
 If the argument \code{output_attribute} was specified, then the two lists are added next to the existing attribute output.
 }
 \description{
-This function considers socio-economic aspects (e.g. multiple deprivation index) in the attributable health impacts. If nothing is entered in the argument \code{output_attribute}, it is assumed that all data come from a table and the argument refer to the columns of that table.
+This function analyzes differences in attributable health impacts across study areas
+looking at the value of a socio-economic indicator (e.g. multiple deprivation index).
+If nothing is entered in the argument \code{output_attribute},
+it is assumed that all data come from a table and the argument refer to the columns of that table.
+}
+\details{
+\strong{Methodology}
+
+This function estimates the absolute and relative differences in attributable health impacts
+comparing study areas with different values for a socio-economic indicator
+\insertCite{Renard2019_bmc,Otavova_2022_bmc}{healthiar}.
+
+Detailed information about the methodology (including equations)
+is available in the package vignette.
+More specifically, see chapters:
+\itemize{
+ \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#health-impact-attributable-to-social-indicator}{Health impact attributable to social indicator}}
 }
 \examples{
 # Goal: determine fraction of attributable health impact that can
@@ -76,32 +92,45 @@ This function considers socio-economic aspects (e.g. multiple deprivation index)
 ## Create assessments for multiple geographic units for the age group
 ## 40 years and younger
 results_age_groups <-
-  healthiar::attribute_health(
-    age_group = rep(c("below_40", "40_plus"), each = 9037),
-    exp_central = c(exdat_socialize$PM25_MEAN, exdat_socialize$PM25_MEAN-0.1),
-    cutoff_central = 0,
-    rr_central = 1.08,
-    erf_shape = "log_linear",
-    rr_increment = 10,
-    bhd_central =  c(exdat_socialize$MORTALITY_below_40, exdat_socialize$MORTALITY_40_plus),
-    population = c(exdat_socialize$POPULATION_below_40, exdat_socialize$POPULATION_40_plus),
-    geo_id_micro = rep(exdat_socialize$CS01012020, 2))
+   healthiar::attribute_health(
+     age_group = exdat_socialize$age_group,
+     exp_central = exdat_socialize$pm25_mean,
+     cutoff_central = 0,
+     rr_central = exdat_socialize$rr,
+     erf_shape = "log_linear",
+     rr_increment = 10,
+     bhd_central = exdat_socialize$mortality,
+     population = exdat_socialize$population,
+     geo_id_micro = exdat_socialize$geo_unit)
 
 ## Difference in attributable impacts between geographic units
 ## that is attributable to differences in deprivation
 results <- socialize(
-  age_group = c("below_40", "40_plus"),
-  ref_prop_pop = c(0.5, 0.5),
   output_attribute = results_age_groups,
-  geo_id_micro = exdat_socialize$CS01012020,
+  age_group = exdat_socialize$age_group, # The same as in attribute_health()
+  ref_prop_pop = exdat_socialize$ref_prop_pop,
+  geo_id_micro = exdat_socialize$geo_unit,
   social_indicator = exdat_socialize$score,
   n_quantile = 10,
   increasing_deprivation = TRUE)
+
 
 results$social_main |>
   dplyr::filter(difference_type == "relative") |>
   dplyr::filter(difference_compared_with == "overall") |>
   dplyr::select(first, last, difference_type, difference_value, comment)
+
+
+}
+\references{
+\insertAllCited{}
+}
+\seealso{
+\itemize{
+  \item Upstream:
+    \code{\link{attribute_health}}, \code{\link{attribute_lifetable}},
+     \code{\link{prepare_mdi}},
+}
 }
 \author{
 Alberto Castro & Axel Luyten

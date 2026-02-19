@@ -5,63 +5,55 @@
 #' This function monetizes health impacts
 
 # ARGUMENTS ####################################################################
-#' @param output_attribute \code{List} produced by \code{healthiar::attribute()} or \code{healthiar::compare()} as results.
+#' @param output_attribute \code{List} produced by \code{healthiar::attribute_health()}, \code{healthiar::attribute_lifetable()} or \code{healthiar::compare()} as results.
 #' @param impact \code{Numberic value} referring to the health impacts to be monetized (without attribute function). If a \code{Numberic vector} is entered multiple assessments (by year) will be carried out. Be aware that the value for year 0 (current) must be entered, while n_years does not include the year 0. Thus, length of impact = n_years + 1.
 #' @param valuation \code{Numberic value} referring to unit value of a health impact.
 #' @param discount_rate \code{Numeric value} showing the discount rate for future years. If it is a nominal discount rate, no inflation is to be entered. If it is a real discount rate, the result can be adjusted by entering inflation in this function.
-#' @param discount_shape \code{String} referring to the assumed equation for the discount factor. By default: "exponential". Otherwise: "hyperbolic_harvey_1986" or "hyperbolic_mazur_1987".
+#' @param discount_shape \code{String} referring to the assumed equation for the discount factor. By default: \code{"exponential"}. Otherwise: \code{"hyperbolic_harvey_1986"} or \code{"hyperbolic_mazur_1987"}.
 #' @param n_years \code{Numeric value} referring to number of years in the future to be considered in the discounting and/or inflation. Be aware that the year 0 (without discounting/inflation, i.e. the present) is not be counted here. If a vector is entered in the argument impact, n_years does not need to be entered (length of impact = n_years + 1).
 #' @param inflation_rate \code{Numeric value} between 0 and 1 referring to the annual inflation (increase of prices). Only to be entered if nominal (not real) discount rate is entered in the function. Default value = NULL (assuming no nominal discount rate).
 #' @param info \code{String}, \code{data frame} or \code{tibble} providing \strong{information about the assessment}. Only attached if \code{impact} is entered by the users. If \code{output_attribute} is entered, use \code{info} in that function or add the column manually. \emph{Optional argument.}
 
 # DETAILS ######################################################################
-
 #' @details
-#' \strong{Equation inflation factor (without discounting)}
-#' @details
-#' \deqn{inflation\_factor = (1 + inflation\_rate)^{n\_years}}
-
-#' @details
-#' \strong{Equations discount factors (without inflation)}
-#' @details
-#' \emph{Exponential discounting (no inflation)}
-#' \deqn{discount\_factor = \frac{1}{(1 + discount\_rate) ^{n\_years}}}
-#' @details
-#' \emph{Hyperbolic discounting Harvey (no inflation)}
-#' \deqn{discount\_factor = \frac{1}{(1 + n\_years)^{discount\_rate}}}
-#' \emph{Hyperbolic discounting Mazure (no inflation)}
-#' \deqn{discount\_factor = \frac{1}{(1 + (discount\_rate \times n\_years)}}
-
-#' @details
-#' \strong{Equations discount factors with inflation}
-#' @details
-#' \emph{Exponential discounting (with inflation)}
-#' \deqn{discount\_and\_inflation\_factor = \frac{1}{((1 + discount\_rate) \times (1 + inflation\_rate)) ^{n\_years}}}
-#' @details
-#' \emph{Hyperbolic discounting Harvey (with inflation)}
-#' \deqn{discount\_and\_inflation\_factor = \frac{1}{(1 + n\_years)^{discount\_rate} \times (1 + inflation\_rate)^{n\_years}}}
-#' \emph{Hyperbolic discounting Mazure (with inflation)}
-#' \deqn{discount\_and\_inflation\_factor = \frac{1}{(1 + (discount\_rate \times n\_years) \times (1 + inflation\_rate)^{n\_years}}}
-
+#'
+#' \strong{Methodology}
+#'
+#' This function monetize health impacts valuating them and
+#' applying discounting \insertCite{Frederick2002_jel,Harvey1986_ms,Mazur1987_book}{healthiar}
+#' and/or inflation \insertCite{Brealey2023_book}{healthiar}.
+#'
+#' One of the following three discount shapes can be selected:
+#' \itemize{
+#'  \item Exponential \insertCite{Frederick2002_jel}{healthiar}
+#'  \item Hyperbolic as \insertCite{Harvey1986_ms;textual}{healthiar}
+#'  \item Hyperbolic as \insertCite{Mazur1987_book;textual}{healthiar}}
+#'
+#' Detailed information about the methodology (including equations)
+#' is available in the package vignette.
+#' More specifically, see chapters:
+#' \itemize{
+#'  \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#monetization}{Monetization}}
+#'
 # VALUE ########################################################################
 #' @returns
 #' This function returns a \code{list} containing:
-#' @returns
+#'
 #' 1) \code{monetization_main} (\code{tibble}) containing the main monetized results;
 #' \itemize{
 #'  \item \code{monetized_impact} (\code{numeric} column)
 #'  \item \code{discount_factor} (\code{numeric} column) calculated based on the entered \code{discount_rate}
 #'  \item And many more
 #' }
-#' @returns
+#'
 #' 2) \code{monetization_detailed} (\code{list}) containing detailed (and interim) results.
 #' \itemize{
 #'  \item \code{results_by_year} (\code{tibble})
 #'  \item \code{health_raw} (\code{tibble}) containing the monetized results for each for each combination of input uncertainty that were provided to the initial \code{attribute_health()} call
 #' }
-#' @returns
+#'
 #' If the argument \code{output_attribute} was specified, then the two results elements are added to the existing output.
-
+#'
 # EXAMPLES #####################################################################
 #' @examples
 #' # Goal: monetize the attributable impacts of an existing healthiar
@@ -86,9 +78,23 @@
 #' # Attributable COPD cases its monetized impact
 #' results$monetization_main |>
 #'   dplyr::select(impact, monetized_impact)
-
+#'
+#'
+#' @seealso
+#' \itemize{
+#'   \item Upstream: \code{\link{attribute_health}}, \code{\link{attribute_lifetable}}, \code{\link{compare}}
+#'   \item Alternative: \code{\link{get_inflation_factor}},
+#'     \code{\link{get_discount_factor}}, \code{\link{cba}}
+#' }
+#'
+#'
+#' @references
+#'
+#' \insertAllCited{}
+#'
+#'
 #' @author Alberto Castro & Axel Luyten
-
+#'
 #' @export
 
 
@@ -98,27 +104,69 @@ monetize <- function(output_attribute = NULL,
                      valuation,
                      discount_rate = NULL,
                      discount_shape = "exponential",
-                     n_years = 0,
+                     n_years = NULL,
                      inflation_rate = NULL,
                      info = NULL) {
 
-  # Define variables ####
 
+  # Store input_args
+  input_args <-
+    get_input_args(environment = base::environment(),
+                   call = match.call())
+
+  # Define variables ####
   # Store variables to increase readability of conditions
   #from healthiar
   using_impact_from_healthiar <-
     !base::is.null(output_attribute) & base::is.null(impact)
 
 
+
+  # Using compare() before monetize()
+  is_compare <-
+    "input_args_scen_1" %in% base::names(output_attribute$health_detailed$input_args)
+
+  if(is_compare){
+
+    approach_comparison <-
+      base::unique(output_attribute$health_detailed$input_args$approach_comparison)
+
+  } else {
+    approach_comparison <- "no_comparison"
+  }
+
+
   # is_lifetable only can exist if output_attribute is provided
   # and then it has to be checked of is_lifetable is TRUE or FALSE
-  if(! base::is.null(output_attribute)){
-    is_lifetable <-
-      base::unique(output_attribute[["health_detailed"]][["input_table"]]$is_lifetable)
-    # Witout output_attribute, no life table
-  } else { is_lifetable <- FALSE}
+
+  if (!base::is.null(output_attribute)) {
+
+    input_table <- output_attribute[["health_detailed"]][["input_table"]]
+
+    # If after attribute_x(), then input table is a tibble
+    if (!is_compare) {
+      is_lifetable <- base::unique(input_table$is_lifetable)
+
+    # If after compare(), input table is a list
+    } else if (approach_comparison == "delta") {
+
+        # When delta, two input tables (one per scenario)
+
+        is_lifetable <- base::unique(input_table[["input_table_scen_1"]]$is_lifetable)
+
+      } else { # If approach comparison "pif" or if no_comparison
+
+        is_lifetable <- base::unique(input_table$is_lifetable)
+      }
+
+  } else {
+    is_lifetable <- FALSE
+    }
+
+
 
   is_not_lifetable <- ! is_lifetable
+
 
   # With and without lifetable
   using_impact_from_healthiar_with_lifetable <-
@@ -145,7 +193,7 @@ monetize <- function(output_attribute = NULL,
 
 
   # If a vector is entered in impact
-  # The discount years are already defined by the lenght of the vector
+  # The discount years are already defined by the length of the vector
   # Users do not need to enter it.
   if(using_impact_vector_from_user){
     n_years <- base::length(impact)-1
@@ -196,21 +244,50 @@ monetize <- function(output_attribute = NULL,
          call. = FALSE)
   }
 
+  ## Error if different year of analysis in life table approach ####
 
-  ## Warning if no value for n_years, but discount_rate####
+  # if different year of analysis in scen_1 and scen_2
 
-  # Then discount values are ignored because no discount is happening (by default `n_years = 0`)
-  # discount_shape has a default value, so it is never NULL
-  if(n_years == 0 &&
-     base::any(!base::is.null(discount_rate))&&
-     # Exclude life table because the n_years are calculated based on life table
-     !is_lifetable){
-    warning(
-      base::paste0("You entered some value in discount_rate,",
-                   " but n_years is 0 (default value).",
-                   " Therefore no discount is applied."),
-      call. = FALSE)
+
+  if(is_compare){
+
+    # Store values of scenarios
+    arg_values_scen_1 <- output_attribute$health_detailed$input_args$input_args_scen_1$value
+    arg_values_scen_2 <- output_attribute$health_detailed$input_args$input_args_scen_2$value
+
+
+    error_if_different_baseline <- function(var){
+      # If year of analysis are different
+      if(!base::identical(arg_values_scen_1[v], arg_values_scen_2[v])){
+
+        # Error because monetize() aims to monetize health impacts from interventions
+        # and health impacts from different years cannot be attributed to the intervention
+
+        stop(
+          base::paste0("Please, enter the same ", v ,
+                       " in both scenarios of the healthiar function compare. ",
+                       "Otherwise, the monetization cannot be attributed to an intervention."),
+          call. = FALSE)
+      }
+    }
+
+    for(v in c("bhd_central", "bhd_lower", "bhd_upper")){
+
+      error_if_different_baseline(var = v)
+
+    }
+
+    if(is_lifetable){
+
+      for(v in c("year_of_analysis")){
+
+        error_if_different_baseline(var = v)
+
+      }
+    }
   }
+
+
 
   #### error_if_info_with_incompatible_length ####
 
@@ -238,7 +315,7 @@ monetize <- function(output_attribute = NULL,
 
   # Then the value will be ignored and the length of impact will be used as n_years
 
-  if("n_years" %in% base::names(base::match.call()) &&
+  if( ! base::is.null(input_args$value$n_years)  &&
      base::length(impact) > 1 &&
      !base::is.null(impact)){
     warning(
@@ -252,12 +329,32 @@ monetize <- function(output_attribute = NULL,
 
   # Then the value will be ignored and the length of impact will be used as n_years
 
-  if("n_years" %in% base::names(base::match.call()) &&
+
+
+  if( ! base::is.null(input_args$value$n_years) &&
      is_lifetable){
     warning(
       base::paste0("n_years is aimed for any output_attribute",
                    " and for impact with single value (no vector).",
                    " Therefore n_years is ignored here and the length life table is used instead."),
+      call. = FALSE)
+  }
+
+
+
+
+  ## Warning if no value for n_years, but discount_rate####
+
+  # Then discount values are ignored because no discount is happening (by default `n_years = 0`)
+  # discount_shape has a default value, so it is never NULL
+  if(base::is.null(n_years) &&
+     base::any(!base::is.null(discount_rate))&&
+     # Exclude life table because the n_years are calculated based on life table
+     !is_lifetable){
+    warning(
+      base::paste0("You entered some value in discount_rate,",
+                   " but n_years is 0 (default value).",
+                   " Therefore no discount is applied."),
       call. = FALSE)
   }
 
@@ -282,7 +379,10 @@ monetize <- function(output_attribute = NULL,
 
 
       # Define discount years
-      n_years_vector <- 0 : n_years
+      if(base::is.null(n_years)){
+        n_years_vector <- 0
+      } else {
+        n_years_vector <- 0:n_years}
 
       df_with_input <-
         df |>
@@ -409,7 +509,22 @@ monetize <- function(output_attribute = NULL,
         # Convert year to numeric
         year = base::as.numeric(year))
 
-      n_years <- base::max(impact_detailed$year) - base::unique(impact_detailed$year_of_analysis)
+      # Extract year of analysis
+      # If monetizing after compare(), then take year_of_analysis_scen_1
+      # year_of_analysis must be the same in scen_1 and scen_2 to be able to monetize
+      # See validation above
+
+      if(approach_comparison == "delta"){
+
+          year_of_analysis <- base::unique(impact_detailed$year_of_analysis_scen_1)
+
+        #If monetizing after attribute, then just take the value
+      } else { #If pif or no_comparison
+        year_of_analysis <- base::unique(impact_detailed$year_of_analysis)
+      }
+
+
+      n_years <- base::max(impact_detailed$year) - year_of_analysis
 
 
       # Output will be adapted according to monetized impacts

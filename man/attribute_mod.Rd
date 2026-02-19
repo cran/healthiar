@@ -90,17 +90,34 @@ This function returns a \code{list} containing:
 
 2) \code{health_detailed} (\code{list}) containing detailed (and interim) results.
 \itemize{
- \item \code{results_raw} (\code{tibble}) containing results for each combination of input uncertainty
- \item \code{results_by_geo_id_micro} (\code{tibble}) containing results for each geographic unit under analysis (specified in \code{geo_id_micro} argument)
- \item \code{input_table} (\code{tibble}) containing the inputs to each relevant argument
  \item \code{input_args} (\code{list}) containing all the argument inputs used in the background
+ \item \code{input_table} (\code{tibble}) containing the inputs after preparation
+ \item \code{results_raw} (\code{tibble}) containing results for all combinations of input (geo units, uncertainty, age and sex specific data...)
+ \item \code{results_by_...} (\code{tibble}) containing results stratified by each geographic unit, age or sex.
+
+
 }
 }
 \description{
-This function assesses the attributable health impacts in a new scenario 2 which is obtained by modifying an existing scenario 1. Supply an existing attribute output and specify how scenario 1 should be modified to create scenario 2.
+This function quantifies the attributable health impacts in a new scenario 2 as follows:
+\itemize{
+ \item{taking the input data of an existing scenario 1 (obtained using \code{attribute_health()})},
+ \item{modifying some of these input data of scenario 1 for the scenario 2 and}
+ \item{calling in the background \code{attribute_health()} with the new data for scenario 2}}
 }
 \details{
-Please see the function documentation of \code{attribute_health} for the methods used.
+\strong{Methodology}
+
+This function calls in the background \code{attribute_health()}, which can use
+the relative risk \insertCite{Murray2003_e}{healthiar} and absolute risk \insertCite{WHO2011_report}{healthiar}.
+
+Detailed information about the methodology (including equations)
+is available in the package vignette.
+More specifically, see chapters:
+\itemize{
+ \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#modification-of-scenarios}{Modification of scenarios}
+ \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#relative-risk}{Relative risk}
+ \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#absolute-risk}{Absolute risk}}
 }
 \examples{
 # Goal: adjust an existing healthiar scenario and determine the health
@@ -126,6 +143,17 @@ scenario_B <- attribute_mod(
 )
 
 scenario_B$health_main$impact # Attributable impact in scenario B
+
+
+}
+\references{
+\insertAllCited{}
+}
+\seealso{
+\itemize{
+  \item Upstream: \code{\link{attribute_health}}, \code{\link{attribute_lifetable}}
+  \item Downstream: \code{\link{compare}}
+}
 }
 \author{
 Alberto Castro & Axel Luyten

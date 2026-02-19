@@ -2,7 +2,9 @@
 
 # DESCRIPTION ##################################################################
 #' @description
-#' This function performs a cost-benefit analysis
+#' This function performs a cost-benefit analysis.
+#' It is assumed that the benefit is caused by the positive health impacts of a policy intervention,
+#' which generates some costs.
 
 # ARGUMENTS ####################################################################
 #' @inheritParams monetize
@@ -12,22 +14,30 @@
 #' @param cost \code{Numeric value} referring to the investment cost to achieve the reduction of exposure.
 
 # DETAILS ######################################################################
-
 #' @details
-#' \strong{Equation cost-benefit analysis}
-#' @details
-#' \deqn{net\_benefit = benefit - cost}
-#' @details
-#' \deqn{cost\_benefit\_ratio = \frac{benefit}{cost}}
-#' @details
-#' \deqn{return\_on\_investment = \frac{benefit - cost}{cost } \times 100}
-#' @details
-#' For the equations regarding the monetization of the cost and the benefit please see the function documentation of \code{monetize()}.
-
+#'
+#' \strong{Methodology}
+#'
+#' This function provides as output three types of cost-benefit indicators
+#' \insertCite{Boardman2018_book}{healthiar}:
+#'
+#' \itemize{
+#'  \item net benefit
+#'  \item cost-benefit ratio
+#'  \item return of investment}
+#'
+#'
+#' Detailed information about the methodology (including equations)
+#' is available in the package vignette.
+#' More specifically, see chapters:
+#' \itemize{
+#'  \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#cost-benefit-analysis}{cost-benefit analysis}
+#'  \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#monetization}{monetization}}
+#'
 # VALUE ########################################################################
 #' @returns
 #' This function returns a \code{list} containing:
-#' @returns
+#'
 #' 1) \code{cba_main} (\code{tibble}) containing the main CBA results;
 #' \itemize{
 #'  \item \code{net_benefit} (\code{numeric} column) containing the difference between benefit and cost (i.e. benefit - cost)
@@ -35,13 +45,13 @@
 #'  \item \code{cost} (\code{numeric} column) containing discounted cost
 #'  \item And many more
 #' }
-#' @returns
+#'
 #' 2) \code{cba_detailed} (\code{list}) containing detailed (and interim) results.
 #' \itemize{
 #'  \item \code{benefit} (\code{list})
 #'  \item \code{cost} (\code{tibble})
 #' }
-#' @returns
+#'
 #' If the argument \code{output_attribute} was specified, then the two results elements are added to the existing output.
 
 # EXAMPLES #####################################################################
@@ -71,9 +81,22 @@
 #'
 #' results$cba_main |>
 #'   dplyr::select(benefit, cost, net_benefit)
-
+#'
+#'
+#' @seealso
+#' \itemize{
+#'   \item Upstream: \code{\link{attribute_health}}
+#'   \item Alternative: \code{\link{monetize}}
+#' }
+#'
+#'
+#' @references
+#'
+#' \insertAllCited{}
+#'
+#'
 #' @author Alberto Castro & Axel Luyten
-
+#'
 #' @export
 
 

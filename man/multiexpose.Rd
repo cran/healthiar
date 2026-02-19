@@ -31,21 +31,33 @@ This function returns a \code{list} containing:
 
 2) \code{health_detailed} (\code{list}) containing detailed (and interim) results.
 \itemize{
- \item \code{results_raw} (\code{tibble}) containing results for each combination of input uncertainty
- \item \code{results_by_geo_id_micro} (\code{tibble}) containing results for each geographic unit under analysis (specified in \code{geo_id_micro} argument)
- \item \code{input_table} (\code{tibble}) containing the inputs to each relevant argument
  \item \code{input_args} (\code{list}) containing all the argument inputs used in the background
+ \item \code{input_table} (\code{tibble}) containing the inputs after preparation
+ \item \code{results_raw} (\code{tibble}) containing results for all combinations of input (geo units, uncertainty, age and sex specific data...)
+ \item \code{results_by_...} (\code{tibble}) containing results stratified by each geographic unit, age or sex.
+
+
 }
 }
 \description{
 This function aggregates health impacts from multiple exposures to environmental stressors.
 }
 \details{
-\strong{Sources}
+\strong{Methodology}
 
-For more information on the additive and combined approaches see Steenland & Armstrong 2006 (https://doi.org/10.1097/01.ede.0000229155.05644.43).
+This function can add up the attributable health impacts from correlated exposures
+applying one of the following methods \insertCite{Strak2024_report}{healthiar}:
+\itemize{
+ \item Additive \insertCite{Steenland2006-e}{healthiar}
+ \item Multiplicative \insertCite{Jerrett2013-oup}{healthiar}
+ \item Combined \insertCite{Steenland2006-e}{healthiar}
+ }
 
-For more information on the multiplicative approach see Jerrett et al. 2013 (https://doi.org/10.1164/rccm.201303-0609OC).
+Detailed information about the methodology (including equations)
+is available in the package vignette.
+More specifically, see chapters:
+\itemize{
+ \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#two-correlated-exposures}{Two correlated exposures}}
 }
 \examples{
 # Goal: determine aggregated health impacts from multiple exposures
@@ -75,6 +87,16 @@ results <- multiexpose(
   approach_multiexposure = "multiplicative"
 )
 results$health_main$impact
+
+
+}
+\references{
+\insertAllCited{}
+}
+\seealso{
+\itemize{
+  \item Upstream: \code{\link{attribute_health}}, \code{\link{attribute_lifetable}}
+}
 }
 \author{
 Alberto Castro & Axel Luyten

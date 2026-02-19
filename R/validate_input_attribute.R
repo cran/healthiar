@@ -230,27 +230,105 @@ validate_input_attribute <-
           "."))
     }
 
-    if ((input_args$is_entered_by_user$geo_id_micro | input_args$is_entered_by_user$age_group | input_args$is_entered_by_user$sex) & input_args$is_entered_by_user$bhd_central){
+    if ((input_args$is_entered_by_user$geo_id_micro |
+         input_args$is_entered_by_user$age_group |
+         input_args$is_entered_by_user$sex |
+         input_args$is_entered_by_user$info) &
+        input_args$is_entered_by_user$bhd_central){
+
+
+      names_info <- base::names(input_args_value$info)
+
+      # Add info columns as list element for the operation below
+
+      input_args_value_flat <- c(input_args_value,
+                                 base::as.list(input_args_value$info))
 
       ### error_if_bhd_unique_longer_than_id_unique #####
-      arguments_for_bhd_combination <- c("geo_id_micro","sex","age_group") # geo_id_macro is left out because it does not interact with bhd_center
+      # geo_id_macro is left out because it does not interact with bhd_central
+      arguments_for_bhd_combination <- base::intersect(
+        base::names(input_args_value_flat),
+        c("geo_id_micro", "sex", "age_group", names_info))
 
-      #find all ids which where used
-      valid_ids <- purrr::map_lgl(input_args_value[arguments_for_bhd_combination],~ base::length(.x) == base::length(input_args_value$bhd_central))
+      #find all ids which were used
+      valid_ids <- purrr::map_lgl(input_args_value_flat[arguments_for_bhd_combination],
+                                  ~ base::length(.x) == base::length(input_args_value_flat$bhd_central))
 
       #create dataframe with used ids and bhd as cols
-      df_id_structure <- base::as.data.frame(input_args_value[c(c("bhd_central"),arguments_for_bhd_combination[valid_ids])])
+      df_id_structure <-
+        base::as.data.frame(input_args_value_flat[c(c("bhd_central"),
+                                                    arguments_for_bhd_combination[valid_ids])])
+
       if(base::nrow(df_id_structure) > 0){
 
         #check if every id combination has only one assigned bhd_central value
-        id_ambiguity<-df_id_structure |> dplyr::group_by(dplyr::across(!bhd_central)) |> dplyr::summarise(all_same = dplyr::n_distinct(.data$bhd_central) != 1)
+        id_ambiguity <- df_id_structure |>
+          dplyr::group_by(dplyr::across(!bhd_central)) |>
+          dplyr::summarize(not_same = dplyr::n_distinct(.data$bhd_central) != 1)
 
-        if(base::any(id_ambiguity$all_same)){
-          base::stop(base::paste0(
-            "Allocation from bhd_central to ",base::toString(arguments_for_bhd_combination[valid_ids])," is ambiguous.\n",
-            "The following combinations have multiple bhd_central values: \n",base::toString(base::do.call(base::paste, c(id_ambiguity[id_ambiguity$all_same, 1:(base::ncol(id_ambiguity)-1)],sep = "_"))),
-            "\n","Within every combination, the bhd_central values need to be the same."),call. = NULL)
-    }}}
+        if(base::any(id_ambiguity$not_same)){
+          base::stop(
+            base::paste0(
+              "Allocation from bhd_central to ",base::toString(arguments_for_bhd_combination[valid_ids])," is ambiguous.\n",
+              "The following combinations have multiple bhd_central values: \n",
+              base::toString(base::do.call(base::paste, c(id_ambiguity[id_ambiguity$not_same, 1:(base::ncol(id_ambiguity)-1)],sep = "_"))),
+              "\n",
+              "Within every combination, the bhd_central values need to be the same."),
+            call. = FALSE)
+        }}}
+
+    ### error_if_multiple_rr_in_one_exp_category #####
+    if ((input_args$is_entered_by_user$geo_id_macro |
+         input_args$is_entered_by_user$geo_id_micro |
+         input_args$is_entered_by_user$age_group |
+         input_args$is_entered_by_user$sex |
+         input_args$is_entered_by_user$info) &
+        input_args$is_entered_by_user$rr_central){
+
+
+      names_info <- base::names(input_args_value$info)
+
+      # Add info columns as list element for the operation below
+      input_args_value_flat <- c(input_args_value,
+                                 base::as.list(input_args_value$info))
+
+      arguments_for_rr_combination <- base::intersect(
+        base::names(input_args_value_flat),
+        c("geo_id_macro","geo_id_micro", "sex", "age_group", names_info))
+
+      #find all ids which were used
+      valid_ids <- purrr::map_lgl(input_args_value_flat[arguments_for_rr_combination],
+                                  ~ base::length(.x) == base::length(input_args_value_flat$rr_central))
+
+      #create dataframe with used ids and rr as cols
+      df_id_structure <-
+        base::as.data.frame(input_args_value_flat[c(c("rr_central"),
+                                                    arguments_for_rr_combination[valid_ids])])
+
+      if(base::nrow(df_id_structure) > 0){
+
+        #check if every id combination has only one assigned rr_central value
+        id_ambiguity <- df_id_structure |>
+          dplyr::group_by(dplyr::across(!rr_central)) |>
+          dplyr::summarize(not_same = dplyr::n_distinct(.data$rr_central) != 1)
+
+        if(base::any(id_ambiguity$not_same)){
+          base::stop(
+            base::paste0(
+              "Allocation from rr_central to ",base::toString(arguments_for_rr_combination[valid_ids])," is ambiguous.\n",
+              "The following combinations have multiple rr_central values: \n",
+              base::toString(base::do.call(base::paste, c(id_ambiguity[id_ambiguity$not_same, 1:(base::ncol(id_ambiguity)-1)],sep = "_"))),
+              "\n",
+              "Within every combination, the rr_central values need to be the same."),
+            call. = FALSE)
+        }}}
+        else if (input_args$is_entered_by_user$rr_central & (base::length(base::unique(input_args_value$rr_central))>1)) {
+          base::stop(
+            base::paste0(
+              "rr_central must be the same for all exposures."),
+            call. = FALSE)
+        }
+
 
     if(is_lifetable){
 
@@ -601,32 +679,34 @@ validate_input_attribute <-
 
     ## Warnings ########################
 
-    ### warning_if_ar_and_var #####
-    warning_if_ar_and_var <- function(var_name){
+    ### warning_if_ar_and_cutoff #####
+    warning_if_ar_and_cutoff <- function(var_names){
 
       # Store var_value
-      var_value <- input_args_value [[var_name]]
+      available_var_values <- input_args_value[var_names] |>
+        purrr::discard(base::is.null)
+      available_var_names <- base::names(available_var_values)
 
 
-      if(base::any(approach_risk == "absolute_risk" &
-         !base::is.null(var_value) & !var_value == 0)){ # Only if available
+      if(base::any(approach_risk == "absolute_risk") &
+         base::length(available_var_names) > 0 &
+         base::any(!base::unlist(available_var_values) == 0)){ # Only if available
         # Create warning message
         base::warning(
           base::paste0(
-            "For absolute risk, the value of ",
-            var_name,
-            " is not considered; ",
-            var_name,
-            " is defined by the exposure-response function."),
+            "You entered a value for: ", paste(available_var_names, collapse = ", "), ". ", "\n",
+            "Be aware that for the absolute risk, the cutoff arguments are not used.", "\n",
+            "Thus, all exposures (including those below your entered cutoff)", "\n",
+            "will contribute to the attributable health impact. ", "\n",
+            "Consider handling the cutoff in the exposure-response function."),
           call. = FALSE)
       }
     }
 
     # Call function only if absolute risk
 
-      for(cutoff_ci_suffix in base::paste0("cutoff", ci_suffix)){
-        warning_if_ar_and_var(cutoff_ci_suffix)
-    }
+    warning_if_ar_and_cutoff(var_names = base::paste0("cutoff", ci_suffix))
+
 
 
     ### warning_if_rr_and_no_var_with_default #####

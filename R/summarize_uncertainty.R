@@ -2,8 +2,9 @@
 
 # DESCRIPTION ##################################################################
 #' @description
-#' This function determines summary uncertainty (based on central, lower and upper estimates of at least one input variable) using attribute() or compare()
-#' function output by Monte Carlo simulation.
+#' This function obtains a summary of uncertainty
+#' (based on central, lower and upper estimates of at least one input variable)
+#' using a Monte Carlo simulation.
 #' @description
 #' Input variables that will be processed are:
 #' \itemize{
@@ -22,39 +23,37 @@
 
 # DETAILS ######################################################################
 #' @details
-#' \strong{Method}
-#' @details
-#' For each processed input variable with a provided 95\% confidence interval value, a distribution is fitted (see below). From these, \code{n_sim} input value sets are sampled to compute \code{n_sim} attributable impacts. The median value of these attributable impacts is reported as the central estimate, and the 2.5th and 97.5th percentiles define the lower and upper bounds of the 95\% summary uncertainty confidence interval, respectively. Aggregated central, lower and upper estimates are obtained by summing the corresponding values of each lower level unit.
-
-#' @details
-#' \strong{Distributions used for simulation}
-#' @details
-#' Relative risk values are simulated based on an optimized gamma distribution, which fits well as relative risks are positive and its distributions usually right-skewed. The gamma distribution best fitting the inputted central relative risk estimate and corresponding lower and upper 95\% confidence interval values is fitted using \code{stats::qgamma()} (with \code{rate = shape / rr_central}) and then \code{stats::optimize} is used to optimize the distribution parameters. Finally, \code{n_sim} relative risk values are simulated using \code{stats::rgamma()}.
-#' @details
-#' Exposure values are simulated based on a normal distribution using \code{stats::rnorm()} with \code{mean = exp_central} and a standard deviation based on corresponding lower and upper 95\% exposure confidence interval values.
-#' @details
-#' Cutoff values are simulated based on a normal distribution using \code{stats::rnorm()} with \code{mean = cutoff_central} and a standard deviation based on corresponding lower and upper 95\% cutoff confidence interval values.
-#' @details
-#' Baseline health data values are simulated based on a normal distribution using \code{stats::rnorm()} with \code{mean = bhd_central} and a standard deviation based on corresponding lower and upper 95\% exposure confidence interval values.
-#' @details
-#' Disability weights values of the morbidity health outcome of interest are simulated based on a beta distribution, as both the disability weights and the beta distribution are bounded by 0 and 1. The beta distribution best fitting the inputted central disability weight estimate and corresponding lower and upper 95\% confidence interval values is fitted using \code{stats::qgamma()} (the best fitting distribution parameters \code{shape1} and \code{shape2} are determined using \code{stats::optimize()}). Finally, \code{n_sim} disability weight values are simulated using \code{stats::rbeta()}.
-#' @details
-#' Duration values of the morbidity health outcome of interest are simulated based on a normal distribution using \code{stats::rnorm()} with \code{mean = duration_central} and a standard deviation based on corresponding lower and upper 95\% exposure confidence interval values.
-
-#' @details
+#'
 #' \strong{Function arguments}
-#' @details
 #' \code{seed}
-#' @details
-#' If the \code{seed} argument is specified then the \code{parallel} package is used to generate independent L’Ecuyer random number streams. One stream is allocated per variable (or per variable–geography combination, as needed), ensuring reproducible and independent random draws across variables and scenarios.
-
-
+#' If the \code{seed} argument is specified then the \code{parallel} package
+#' is used to generate independent L’Ecuyer random number streams.
+#' One stream is allocated per variable (or per variable–geography combination, as needed),
+#' ensuring reproducible and independent random draws across variables and scenarios.
+#'
+#'
+#' \strong{Methodology}
+#'
+#' This function summarizes the uncertainty of the attributable health impacts
+#' (i.e.a single confidence interval instead of many combinations).
+#' For this purpose, it applies
+#' a Monte Carlo simulation \insertCite{Robert2004_book,Rubinstein2016_book}{healthiar}.
+#'
+#' Detailed information about the methodology (including equations)
+#' is available in the package vignette.
+#' More specifically, see chapters:
+#' \itemize{
+#'  \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#monte-carlo-simulation}{Monte Carlo simulation}}
+#'
+#'
 # VALUE ########################################################################
 #' @returns
 #' This function returns a \code{list} containing:
-#' @returns
-#' 1) \code{uncertainty_main} (\code{tibble}) containing the \code{numeric} summary uncertainty central estimate and corresponding lower and upper confidence intervals for the attributable health impacts obtained through Monte Carlo simulation;
-#' @returns
+#'
+#' 1) \code{uncertainty_main} (\code{tibble}) containing the \code{numeric}
+#' summary uncertainty central estimate and corresponding lower and upper confidence intervals
+#' for the attributable health impacts obtained through Monte Carlo simulation;
+#'
 #' 2) \code{uncertainty_detailed} (\code{list}) containing detailed (and interim) results.
 #' \itemize{
 #'  \item \code{impact_by_sim} (\code{tibble}) containing the results for each simulation
@@ -86,9 +85,23 @@
 #'   n_sim = 100
 #' )
 #' results$uncertainty_main$impact # Central, lower and upper estimates
-
+#'
+#'
+#' @seealso
+#' \itemize{
+#'   \item Upstream:
+#'     \code{\link{attribute_health}}, \code{\link{attribute_lifetable}},
+#'     \code{\link{compare}}
+#' }
+#'
+#'
+#' @references
+#'
+#' \insertAllCited{}
+#'
+#'
 #' @author Alberto Castro & Axel Luyten
-
+#'
 #' @export
 
 

@@ -21,7 +21,7 @@
 }
 }
 \source{
-Real-world data combined with fake populatoin and mortality data
+Real-world data combined with fake population and mortality data
 }
 \usage{
 data(exdat_socialize)

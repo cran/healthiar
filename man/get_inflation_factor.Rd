@@ -18,15 +18,35 @@ This function returns the \code{numeric} inflation factor.
 This function calculates the inflation factor based on inflation rate.
 }
 \details{
-\strong{Equation inflation factor (without discounting)}
+\strong{Methodology}
 
-\deqn{inflation\_factor = (1 + inflation\_rate)^{n\_years}}
+This function is called inside \code{monetize()}.
+
+It calculates the inflation factor based on the inflation rate
+and the number of years into the future as described
+in \insertCite{Brealey2023_book;textual}{healthiar}.
+
+Detailed information about the methodology (including equations)
+is available in the package vignette.
+More specifically, see chapters:
+\itemize{
+ \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#monetization}{Monetization}}
 }
 \examples{
 get_inflation_factor(
   inflation_rate = 0.02,
   n_years = 5
 )
+
+
+}
+\references{
+\insertAllCited{}
+}
+\seealso{
+\itemize{
+  \item Alternative: \code{\link{monetize}}
+}
 }
 \author{
 Alberto Castro & Axel Luyten

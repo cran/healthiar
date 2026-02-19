@@ -30,37 +30,38 @@ get_risk(
 This function returns the \code{numeric} risk value(s) at the specified exposure level(s), referred to as \emph{rr_at_exp} in the relative risk equations above.
 }
 \description{
-This function re-scales the relative risk from the increment value in the epidemiological study (e.g. for PM2.5 10 or 5 ug/m3) to the actual population exposure
+This function re-scales the relative risk from the increment value in the epidemiological study
+(e.g. for PM2.5 10 or 5 ug/m3) to the actual population exposure
 }
 \details{
 \strong{Function arguments}
-
 \code{erf_eq}
+If the function is provided as \code{string},
+it can only contain the variable c (exposure), e.g. "3+c+c^2".
+If the function is provided as a \code{function},
+the object must be of the class function.
+If only the values of the x-axis (exposure) and y axis (relative risk)
+of the dots in the exposure-response function are available,
+a cubic spline natural interpolation can be assumed to get the function using,
+e.g., \code{stats::splinefun(x, y, method="natural")}
 
-If the function is provided as \code{string}, it can only contain the variable c (exposure), e.g. "3+c+c^2". If the function is provided as a \code{function}, the object must be of the class function. If only the values of the x-axis (exposure) and y axis (relative risk) of the dots in the exposure-response function are available, a cubic spline natural interpolation can be assumed to get the function using, e.g., \code{stats::splinefun(x, y, method="natural")}
+\strong{Methodology}
 
-\strong{Equations for scaling of relative risk}
+This function is called internally inside other \code{healthiar} functions, e.g. \code{attribute_health()}.
+The function calculates the relative risk at the exposure level based on the
+relative risk available in the epidemiological literature and the assumed shape
+of the exposure-response function
+\insertCite{Pozzer2023_gh,Lehtomaki_2025_eh}{healthiar}.
 
-\emph{linear ERF}
-\deqn{rr\_at\_exp =  1 + \frac{(rr - 1)}{rr\_increment} \cdot (exp - cutoff)}
-
-\emph{log-linear ERF}
-
-\deqn{rr\_at\_exp = e^{\frac{\log(\mathrm{rr})}{\mathrm{rr\_increment}} \cdot (\mathrm{exp} - \mathrm{cutoff})}}
-
-\emph{log-log ERF}
-
-\deqn{rr\_at\_exp = (\frac{exp + 1}{cutoff + 1})^{\frac{\log(\mathrm{rr})}{\log(\mathrm{rr\_increment + cutoff + 1}) - \log(cutoff + 1)}}}
-
-\emph{linear-log ERF}
-
-\deqn{rr\_at\_exp = 1 + \frac{\log(\mathrm{rr - 1})}{\log(\mathrm{rr\_increment + cutoff + 1}) - \log(cutoff + 1)} \cdot \frac{\log(exp + 1)}{\log(cutoff + 1)}}
-
-\strong{Sources}
-
-For the log-linear, log-log and linear-log exposure-response function equations see Pozzer et al. 2022 (https://doi.org/10.1029/2022GH000711).
+Detailed information about the methodology
+(including corresponding equations and literature)
+is available in the package vignette.
+More specifically, see chapters:
+\itemize{
+ \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#relative-risk}{relative risk}}
 }
 \examples{
+
 # Goal: scale relative risk to observed exposure level
 get_risk(
   rr = 1.05,
@@ -86,6 +87,16 @@ get_risk(
     method = "natural"),
   exp = c(8, 9, 10)
 )
+
+
+}
+\references{
+\insertAllCited{}
+}
+\seealso{
+\itemize{
+  \item Alternative: \code{\link{attribute_health}}, \code{\link{attribute_lifetable}}
+}
 }
 \author{
 Alberto Castro & Axel Luyten
