@@ -6162,8 +6162,9 @@ intervention” vs. “after intervention”.</p>
 <li><p>Delta: Subtraction of health impact in scenario 1 minus in
 scenarios 2 (i.e. two PAF) <span class="citation">(WHO Regional Office
 for Europe 2014)</span></p></li>
-<li><p>Population impact fraction (PIF) <span class="citation">(Askari
-and Namayandeh 2020)</span>.</p></li>
+<li><p>Population impact fraction (PIF) <span class="citation">(WHO
+2003; C. J. L. Murray et al. 2003; Askari and Namayandeh
+2020)</span>.</p></li>
 </ul>
 <p>Note that the PIF comparison approach assumes same baseline health
 data for scenario 1 and 2 (e.g., comparison of two scenarios at the same
@@ -6608,7 +6609,8 @@ it in present-value terms.</p>
 <p>If you need the discounted values of a cost or health outcome, you
 can call the <code>healthiar</code> function <code>discount()</code>. If
 you just need the discount factor, you can alternatively call
-<code>get_discount_factor()</code>. If you just need the inflation
+<code>get_discount_factor()</code> (entering
+<code>is_deflation = TRUE</code>). If you just need the inflation
 factor, you can <code>get_inflation_factor()</code>.</p>
 <p>Different functional forms can be used to apply discounting. The most
 common is exponential discounting, also referred to as constant
@@ -6617,40 +6619,59 @@ increases. An alternative is hyperbolic discounting, which tends to
 better capture human behavior by discounting the near present more
 heavily than outcomes further in the future <span class="citation">(Lipman and Attema 2024)</span></p>
 <p>See below the equations that are used behind these functions.</p>
-<div id="inflation-factor-without-discounting" class="section level4">
-<h4>Inflation factor (without discounting)</h4>
-<p>As suggested by <span class="citation">(Brealey et al. 2023;
-Samuelson 1937)</span></p>
-<p><span class="math display">\[inflation\_factor = (1 +
-inflation\_rate)^{n\_years}\]</span></p>
-</div>
-</div>
-<div id="discount-factors-without-inflation" class="section level3">
-<h3>Discount factors (without inflation)</h3>
-<p><em>Exponential discounting (no inflation)</em></p>
+<p><span class="math display">\[monetized\_impact = impact \times
+valuation \times discount\_factor \times deflator\_factor \times
+real\_growth\_factor\]</span> The arguments
+<code>discount_factor</code>, <code>deflator_factor</code> and
+<code>real_growth_factor</code> are only used if a value is entered in
+the arguments <code>discount_rate</code>, <code>ingflation_rate</code>
+and <code>real_growth_rate</code> respectively<br />
+(otherwise ignored).</p>
+<div id="discount-factor" class="section level4">
+<h4>Discount factor</h4>
+<p><em>Exponential discounting</em></p>
 <p>As suggested by <span class="citation">Frederick, Loewenstein, and
 O’Donoghue (2002)</span></p>
 <p><span class="math display">\[discount\_factor = \frac{1}{(1 +
 discount\_rate)^{n\_years}}\]</span></p>
-<p><em>Hyperbolic discounting Harvey (no inflation)</em></p>
+<p><em>Hyperbolic discounting Harvey</em></p>
 <p>As suggested by <span class="citation">Harvey (1986)</span></p>
 <p><span class="math display">\[discount\_factor = \frac{1}{(1 +
 n\_years)^{discount\_rate}}\]</span></p>
-<p><em>Hyperbolic discounting Mazur (no inflation)</em></p>
+<p><em>Hyperbolic discounting Mazur</em></p>
 <p>As suggested by <span class="citation">Mazur (1987)</span></p>
 <p><span class="math display">\[discount\_factor = \frac{1}{1 +
 (discount\_rate \times n\_years)}\]</span></p>
 </div>
-<div id="discount-factors-with-inflation" class="section level3">
-<h3>Discount factors with inflation</h3>
-<p><em>Exponential discounting (with inflation)</em> <span class="math display">\[discount\_and\_inflation\_factor = \frac{1}{((1 +
-discount\_rate) \times (1 + inflation\_rate))^{n\_years}}\]</span></p>
-<p><em>Hyperbolic discounting Harvey (with inflation)</em> <span class="math display">\[discount\_and\_inflation\_factor = \frac{1}{(1 +
-n\_years)^{discount\_rate} \times (1 +
+<div id="deflation-factor" class="section level4">
+<h4>Deflation factor</h4>
+<p>Inflation can be handled in <code>monetize()</code> by applying a
+deflator on future values, projected in nominal terms, in order to
+convert them into real values (i.e., express these values in terms of
+constant prices of a single base year). Therefore, if the user of the
+function provides a value for the <code>inflation_rate</code> argument,
+a deflator factor <span class="citation">(HM Treasury 2022; Brealey et
+al. 2023; Samuelson 1937)</span> is applied according to the following
+formulas</p>
+<p><span class="math display">\[deflator\_factor = \frac{1}{(1 +
 inflation\_rate)^{n\_years}}\]</span></p>
-<p><em>Hyperbolic discounting Mazur (with inflation)</em> <span class="math display">\[discount\_and\_inflation\_factor = \frac{1}{(1 +
-(discount\_rate \times n\_years)) \times (1 +
-inflation\_rate)^{n\_years}}\]</span></p>
+</div>
+<div id="real-valuation-growth" class="section level4">
+<h4>Real valuation growth</h4>
+<p>If a rising societal value of health over time is required in the
+monetization, unlike inflation, this represents a “real” increase in
+value. Thus, as societies become wealthier, their willingness to pay to
+avoid mortality and morbidity risks tends to rise <span class="citation">(OECD 2012)</span>.</p>
+<p>For this use case, you have enter a value in the argument
+<code>real_growth_rate</code> in <code>monetize()</code>, which allows
+you to project this growth by applying a valuation growth factor to
+base-year unit values:</p>
+<p><span class="math display">\[real\_growth\_factor =(1 +
+real\_growth\_rate)^{n\_years}\]</span></p>
+<p>Where <span class="math inline">\(real\_growth\_rate\)</span>
+represents the annual real growth rate in health valuation. This ensures
+that long-term environmental impacts are not undervalued.</p>
+</div>
 </div>
 <div id="function-call-21" class="section level3">
 <h3>Function call</h3>
@@ -7232,6 +7253,10 @@ Economics and Policy</em> 1 (2): 228–40. <a href="https://doi.org/10.1093/reep
 Harvey, Charles M. 1986. <span>“Value Functions for Infinite-Period
 Planning.”</span> <em>Management Science</em> 32 (9): 1123–39. <a href="https://doi.org/10.1287/mnsc.32.9.1123">https://doi.org/10.1287/mnsc.32.9.1123</a>.
 </div>
+<div id="ref-HMTreasury2022_greenbook" class="csl-entry">
+HM Treasury. 2022. <em>The Green Book: Central Government Guidance on
+Appraisal and Evaluation</em>. London, UK: HM Treasury. <a href="https://www.gov.uk/government/publications/the-green-book-appraisal-and-evaluation-in-central-government">https://www.gov.uk/government/publications/the-green-book-appraisal-and-evaluation-in-central-government</a>.
+</div>
 <div id="ref-Jerrett2013-oup" class="csl-entry">
 Jerrett, Michael, Richard T Burnett, Bernardo S Beckerman, Michelle C
 Turner, Daniel Krewski, George Thurston, Randall V Martin, et al. 2013.
@@ -7267,7 +7292,7 @@ and Howard Rachlin, 55–73. Hillsdale, NJ: Lawrence Erlbaum Associates.
 <div id="ref-Miller2003_jech" class="csl-entry">
 Miller, B G, and J F Hurley. 2003. <span>“Life Table Methods for
 Quantitative Impact Assessments in Chronic Mortality.”</span>
-<em>Journal of Epidemiology &amp; Community Health</em> 57 (3): 200–206.
+<em>Journal of Epidemiology and Community Health</em> 57 (3): 200–206.
 <a href="https://doi.org/10.1136/jech.57.3.200">https://doi.org/10.1136/jech.57.3.200</a>.
 </div>
 <div id="ref-Miller2010_report" class="csl-entry">
@@ -7293,6 +7318,10 @@ Murray, Christopher JL, Majid Ezzati, Alan D Lopez, Anthony Rodgers, and
 Stephen Vander Hoorn. 2003. <span>“Comparative Risk Assessment:
 Conceptual Framework and Design.”</span> <em>Epidemiology</em> 14 (4):
 447–58. <a href="https://doi.org/10.1186/1478-7954-1-1">https://doi.org/10.1186/1478-7954-1-1</a>.
+</div>
+<div id="ref-OECD2012_book" class="csl-entry">
+OECD. 2012. <em>Mortality Risk Valuation in Environment, Health and
+Transport Policies</em>. Paris: OECD Publishing. <a href="https://doi.org/10.1787/9789264130807-en">https://doi.org/10.1787/9789264130807-en</a>.
 </div>
 <div id="ref-OECD2025_book" class="csl-entry">
 OECD. 2025. <em>Mortality Risk Valuation in Policy Assessment: A Global
@@ -7322,12 +7351,12 @@ Study.”</span> <em>BMC Public Health</em> 19 (1): 662. <a href="https://doi.or
 </div>
 <div id="ref-Robert2004_book" class="csl-entry">
 Robert, Christian P, and George Casella. 2004. <em>Monte Carlo
-Statistical Methods</em>. Springer Texts in Statistics. Springer Science
-&amp; Business Media. <a href="https://doi.org/10.1007/978-1-4757-4145-2">https://doi.org/10.1007/978-1-4757-4145-2</a>.
+Statistical Methods</em>. Springer Texts in Statistics. Springer
+Science; Business Media. <a href="https://doi.org/10.1007/978-1-4757-4145-2">https://doi.org/10.1007/978-1-4757-4145-2</a>.
 </div>
 <div id="ref-Rubinstein2016_book" class="csl-entry">
 Rubinstein, Reuven Y., and Dirk P. Kroese. 2016. <em>Simulation and the
-Monte Carlo Method</em>. John Wiley &amp; Sons. <a href="https://doi.org/10.1002/9781118631980">https://doi.org/10.1002/9781118631980</a>.
+Monte Carlo Method</em>. John Wiley; Sons. <a href="https://doi.org/10.1002/9781118631980">https://doi.org/10.1002/9781118631980</a>.
 </div>
 <div id="ref-Samuelson1937_res" class="csl-entry">
 Samuelson, Paul A. 1937. <span>“A Note on Measurement of

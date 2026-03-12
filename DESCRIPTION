@@ -1,7 +1,7 @@
 Package: healthiar
 Title: Quantifying and Monetizing Health Impacts Attributable to
         Exposure
-Version: 0.2.3
+Version: 0.2.4
 Authors@R: c(
     person(given = "Alberto", family = "Castro", email = "alberto.castrofernandez@swisstph.ch", role = c("cre", "aut"), comment = c(ORCID = "0000-0002-4665-3299")),
     person(given = "Axel", family = "Luyten", role = c("aut"), comment = c(ORCID = "0000-0002-7005-5889")),
@@ -31,7 +31,7 @@ Description: This R package has been developed with a focus on air pollution and
 License: GPL (>= 3)
 URL: https://swisstph.github.io/healthiar/,
         https://github.com/SwissTPH/healthiar,
-        https://doi.org/10.5281/zenodo.18220361
+        https://doi.org/10.5281/zenodo.18220360
 BugReports: https://github.com/SwissTPH/healthiar/issues
 Encoding: UTF-8
 RoxygenNote: 7.3.3
@@ -45,7 +45,7 @@ Suggests: sf, terra, exactextractr, testthat, devtools, knitr,
         rmarkdown
 Config/Needs/website: rmarkdown
 NeedsCompilation: no
-Packaged: 2026-02-19 18:15:03 UTC; castal
+Packaged: 2026-03-12 08:36:17 UTC; castal
 Author: Alberto Castro [cre, aut] (ORCID:
     <https://orcid.org/0000-0002-4665-3299>),
   Axel Luyten [aut] (ORCID: <https://orcid.org/0000-0002-7005-5889>),
@@ -69,4 +69,4 @@ Author: Alberto Castro [cre, aut] (ORCID:
     <https://orcid.org/0000-0003-4209-7448>)
 Maintainer: Alberto Castro <alberto.castrofernandez@swisstph.ch>
 Repository: CRAN
-Date/Publication: 2026-02-19 18:40:02 UTC
+Date/Publication: 2026-03-12 09:00:14 UTC
