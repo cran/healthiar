@@ -67,7 +67,7 @@ get_impact <-
 
         } else if (is_lifetable) {
           ## ** If is_lifetable ##########################################################
-
+          
           # Calculate impact
           # using get_impact_with_lifetable().
           # The function is not used somewhere else
@@ -94,7 +94,7 @@ get_impact <-
           # no pop_fraction is used,
           # therefore it is based on input_table instead of input_with_risk_and_pop_fraction
           dplyr::mutate(
-            absolute_risk_as_percent = get_risk(exp = exp, erf_eq = erf_eq),
+            absolute_risk_as_percent = get_risk(exp = exp, erf_eq = erf_eq, cutoff = cutoff),
             impact = absolute_risk_as_percent/100 * pop_exp)
       }
 

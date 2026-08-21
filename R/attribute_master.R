@@ -29,7 +29,7 @@
 #' \code{Numeric value} specifying the \strong{exposure increment} for which the provided relative risk is valid. See Details for more info. \emph{Only applicable in RR pathways; not required if \code{erf_eq_...} argument(s) already specified.}
 
 #' @param erf_shape
-#' \code{String value} specifying the \strong{exposure-response function shape} to be assumed. Options (no default): \code{"linear"}, \code{log_linear}", \code{"linear_log"}, \code{"log_log"}. \emph{Only applicable in RR pathways; not required if \code{erf_eq_...} argument(s) already specified.}
+#' \code{String value} specifying the \strong{exposure-response function shape} to be assumed. Options (no default): \code{"linear"}, \code{log_linear}", \code{"linear_log"}, \code{"log_log"}. Input exposure values must be expressed in same unit as the increment of the relative risk. The re-scale of the relative risk is unbounded above and users are responsible for the plausible range. \emph{Only applicable in RR pathways; not required if \code{erf_eq_...} argument(s) already specified.}
 
 #' @param bhd_central,bhd_lower,bhd_upper
 #' \code{Numeric value} or \code{numeric vector} providing the \strong{baseline health data} of the health outcome of interest in the study population and (optionally) the corresponding lower bound and the upper 95\% confidence interval bounds. See Details for more info. \emph{Only applicable in RR pathways; always required.}
@@ -67,7 +67,7 @@
 #' \code{String} specifying the desired result of the life table assessment. Options: \code{"deaths"} (premature deaths), \code{"yll"} (years of life lost).
 
 #' @param min_age,max_age
-#' \code{Numberic value} specifying the minimum and maximum age for which the exposure will affect the exposed population, respectively. Default \code{min_age}: 30. Default \code{max_age}: none. See Details for more info.
+#' \code{Numeric value} specifying the minimum and maximum age for which the exposure will affect the exposed population, respectively. Default \code{min_age}: 30. Default \code{max_age}: none. See Details for more info.
 
 #' @param approach_exposure
 #' \code{String} specifying whether exposure is constant or only in one year. Options: \code{"single_year"} (default), \code{"constant"}.
@@ -83,6 +83,9 @@
 
 #' @param is_lifetable
 #' \code{Boolean} INTERNAL argument specifying if the life table approach is applied (TRUE) or not (FALSE)
+#' 
+#' @param fraction_lived \code{Numeric vector} Numeric vector or \code{single numeric scalar} referring to the average 
+#' fraction of the age interval lived by individuals who die within that interval. Default is 0.5.
 
 # VALUE ########################################################################
 #' @returns
@@ -143,6 +146,7 @@ attribute_master <-
     approach_exposure = NULL,
     year_of_analysis = NULL,
     time_horizon = NULL,
+    fraction_lived = NULL,
     # INTERNAL ARGUMENTS
     input_args = NULL){
 

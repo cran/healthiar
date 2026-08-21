@@ -355,6 +355,27 @@ output_stratified <- output_attribute$health_detailed$results_raw |>
 ## ----eval=TRUE, include=FALSE, echo=FALSE-------------------------------------
 rm(output_attribute, output_stratified)
 
+## ----Examples using prepare_lifetable()---------------------------------------
+age_groups <- c(0, 5, 10, 15)
+pop <- c(438200, 445100, 439800, 421500)
+bhd_counts <- c(1420, 45, 50, 125)
+
+# Standard uniform disaggregation (fraction_lived = 0.5)
+prepared_data <- healthiar::prepare_lifetable(
+  age_group = age_groups,
+  population = pop,
+  bhd = bhd_counts
+  # fraction_lived = 0.5 (default)
+)
+
+# Demographic adjustment for low infant mortality (first fraction_lived = 0.1)
+prepared_data_adjusting_for_low_infant_mortality <- healthiar::prepare_lifetable(
+  age_group = age_groups,
+  population = pop,
+  bhd = bhd_counts,
+  fraction_lived = c(0.1, 0.5, 0.5, 0.5)
+)
+
 ## -----------------------------------------------------------------------------
 results_pm_yll <- attribute_lifetable(
   year_of_analysis = 2019, 
@@ -476,7 +497,7 @@ results_pm_deaths$health_main |>
 #   purrr::pluck(1)
 
 ## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
-results_pm_yll$health_detailed$intermediate_calculations|> 
+results_pm_deaths$health_detailed$intermediate_calculations|> 
   dplyr::filter(sex == "female") |>
   dplyr::pull(projection_if_unexposed_by_age_and_year) |>
   purrr::pluck(1) |>
@@ -731,6 +752,25 @@ legend("topleft",
        lty = c(NA, 1),
        lwd = c(NA, 2))
 
+
+## ----Cut-off vs. threshold----------------------------------------------------
+# Case A: Epidemiological Cut-off (Curve shifted by healthiar)
+epi_cutoff <- healthiar::attribute_health(
+  approach_risk = "absolute_risk",
+  exp_central = c(50, 60, 70),
+  pop_exp = c(300000,200000,150000),
+  cutoff_central = 53,
+  erf_eq_central = "78.9270 - 3.1162 * (c + 53) + 0.0342 * (c + 53)^2"
+)
+
+# Case B: Unshifted Policy Threshold (Exposure truncated, curve unshifted)
+policy_threshold <- healthiar::attribute_health(
+  approach_risk = "absolute_risk",
+  exp_central = c(50, 60, 70),
+  pop_exp = c(300000,200000,150000),
+  cutoff_central = 0,
+  erf_eq_central = "ifelse(c >= 53, 78.9270 - 3.1162 * c + 0.0342 * c^2, 0)"
+)
 
 ## -----------------------------------------------------------------------------
 monetized_pm_copd <- monetize(

@@ -45,6 +45,7 @@ attribute_master(
   approach_exposure = NULL,
   year_of_analysis = NULL,
   time_horizon = NULL,
+  fraction_lived = NULL,
   input_args = NULL
 )
 }
@@ -63,7 +64,7 @@ attribute_master(
 
 \item{rr_increment}{\code{Numeric value} specifying the \strong{exposure increment} for which the provided relative risk is valid. See Details for more info. \emph{Only applicable in RR pathways; not required if \code{erf_eq_...} argument(s) already specified.}}
 
-\item{erf_shape}{\code{String value} specifying the \strong{exposure-response function shape} to be assumed. Options (no default): \code{"linear"}, \code{log_linear}", \code{"linear_log"}, \code{"log_log"}. \emph{Only applicable in RR pathways; not required if \code{erf_eq_...} argument(s) already specified.}}
+\item{erf_shape}{\code{String value} specifying the \strong{exposure-response function shape} to be assumed. Options (no default): \code{"linear"}, \code{log_linear}", \code{"linear_log"}, \code{"log_log"}. Input exposure values must be expressed in same unit as the increment of the relative risk. The re-scale of the relative risk is unbounded above and users are responsible for the plausible range. \emph{Only applicable in RR pathways; not required if \code{erf_eq_...} argument(s) already specified.}}
 
 \item{bhd_central, bhd_lower, bhd_upper}{\code{Numeric value} or \code{numeric vector} providing the \strong{baseline health data} of the health outcome of interest in the study population and (optionally) the corresponding lower bound and the upper 95\% confidence interval bounds. See Details for more info. \emph{Only applicable in RR pathways; always required.}}
 
@@ -88,7 +89,7 @@ attribute_master(
 
 \item{health_outcome}{\code{String} specifying the desired result of the life table assessment. Options: \code{"deaths"} (premature deaths), \code{"yll"} (years of life lost).}
 
-\item{min_age, max_age}{\code{Numberic value} specifying the minimum and maximum age for which the exposure will affect the exposed population, respectively. Default \code{min_age}: 30. Default \code{max_age}: none. See Details for more info.}
+\item{min_age, max_age}{\code{Numeric value} specifying the minimum and maximum age for which the exposure will affect the exposed population, respectively. Default \code{min_age}: 30. Default \code{max_age}: none. See Details for more info.}
 
 \item{approach_newborns}{\code{String} specifying whether newborns are to be considered in the years after the year of analysis or not. Options: \code{"without_newborns"} (default), \code{"with_newborns"}. See Details for more info.}
 
@@ -97,6 +98,9 @@ attribute_master(
 \item{year_of_analysis}{\code{Numeric value} providing the first with exposure to the environmental stressor.}
 
 \item{time_horizon}{\code{Numeric value} specifying the time horizon (number of years) for which the attributable YLL or premature deaths are to be considered. See Details for more info. \emph{Optional argument.}}
+
+\item{fraction_lived}{\code{Numeric vector} Numeric vector or \code{single numeric scalar} referring to the average 
+fraction of the age interval lived by individuals who die within that interval. Default is 0.5.}
 }
 \value{
 This function returns a \code{list} containing:

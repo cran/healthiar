@@ -34,6 +34,15 @@
 #' \code{approach_newborns}
 #' If \code{"with_newborns"} is selected, it is assumed that
 #' for each year after the year of analysis n babies (population aged 0) are born.
+#' 
+#' \code{approach_exposure}
+#' Strategy for modeling exposure over time:
+#'   \itemize{
+#'     \item \code{"single_year"}: Air pollution exposure is evaluated for a single year (year of analysis).
+#'       Attributable premature deaths are calculated for this year only.
+#'     \item \code{"constant"}: Air pollution exposure is sustained across the full projection horizon.
+#'       Attributable premature deaths and YLLs are accumulated across all years within \code{time_horizon}.
+#'   }
 #'
 #' \code{time_horizon}
 #' Applicable for the following cases:
@@ -50,6 +59,11 @@
 #' will be affected by the exposure;
 #' \code{max_age} analogeously specifies the age above
 #' which no health effects of the exposure are considered.
+#' #' 
+#' #' \code{fraction_lived} is by default 0.5 for all age groups. However, 
+#' in low-mortality settings, infant deaths are heavily concentrated
+#' in the first weeks of life. 
+#' Therefore, \code{fraction_lived} can be lower e.g. 0.1 for the first age group.
 #'
 #' \strong{Methodology}
 #'
@@ -187,6 +201,7 @@ attribute_lifetable <-
     approach_newborns = "without_newborns",
     year_of_analysis,
     time_horizon = NULL,
+    fraction_lived = 0.5,
     # AR & RR
     exp_central = NULL, exp_lower = NULL, exp_upper = NULL,
     cutoff_central = 0, cutoff_lower = NULL, cutoff_upper = NULL,
@@ -234,6 +249,7 @@ attribute_lifetable <-
         approach_newborns = approach_newborns,
         year_of_analysis = year_of_analysis,
         time_horizon = time_horizon,
+        fraction_lived = fraction_lived,
         # ITERATION (OPTIONAL)
         geo_id_micro = geo_id_micro, geo_id_macro = geo_id_macro,
         # META (OPTIONAL)

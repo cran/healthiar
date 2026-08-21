@@ -41,7 +41,7 @@ attribute_mod(
 \arguments{
 \item{output_attribute}{\code{List} containing the output of the function attribute() for scenario 1.}
 
-\item{erf_shape}{\code{String value} specifying the \strong{exposure-response function shape} to be assumed. Options (no default): \code{"linear"}, \code{log_linear}", \code{"linear_log"}, \code{"log_log"}. \emph{Only applicable in RR pathways; not required if \code{erf_eq_...} argument(s) already specified.}}
+\item{erf_shape}{\code{String value} specifying the \strong{exposure-response function shape} to be assumed. Options (no default): \code{"linear"}, \code{log_linear}", \code{"linear_log"}, \code{"log_log"}. Input exposure values must be expressed in same unit as the increment of the relative risk. The re-scale of the relative risk is unbounded above and users are responsible for the plausible range. \emph{Only applicable in RR pathways; not required if \code{erf_eq_...} argument(s) already specified.}}
 
 \item{rr_central, rr_lower, rr_upper}{\code{Numeric value} specifying the \strong{central relative risk} estimate and (optionally) the corresponding lower and upper 95\% confidence interval bounds. \emph{Only applicable in RR pathways; not required if \code{erf_eq_...} argument(s) already specified.}}
 
@@ -70,7 +70,7 @@ attribute_mod(
 
 \item{info}{\code{String}, \code{data frame} or \code{tibble} providing \strong{information about the assessment}. See Details for more info. \emph{Optional argument.}}
 
-\item{min_age, max_age}{\code{Numberic value} specifying the minimum and maximum age for which the exposure will affect the exposed population, respectively. Default \code{min_age}: 30. Default \code{max_age}: none. See Details for more info.}
+\item{min_age, max_age}{\code{Numeric value} specifying the minimum and maximum age for which the exposure will affect the exposed population, respectively. Default \code{min_age}: 30. Default \code{max_age}: none. See Details for more info.}
 
 \item{approach_exposure}{\code{String} specifying whether exposure is constant or only in one year. Options: \code{"single_year"} (default), \code{"constant"}.}
 

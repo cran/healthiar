@@ -36,6 +36,9 @@ get_impact_with_lifetable <-
 
     health_outcome <- base::unique(input_with_risk_and_pop_fraction$health_outcome)
 
+    is_deaths <- health_outcome == "deaths"
+    is_yll <- health_outcome == "yll"
+
     is_single_year_exposure <- base::unique(input_with_risk_and_pop_fraction$approach_exposure) == "single_year"
     is_constant_exposure <- base::unique(input_with_risk_and_pop_fraction$approach_exposure) == "constant"
 
@@ -79,33 +82,34 @@ get_impact_with_lifetable <-
 
 
     lifetable_calculation <- lifetable_calculation |>
-      # Get modification factor
-      # it works with both single exposure and exposure distribution
+ 
       dplyr::mutate(
-        modification_factor = 1 - pop_fraction,
-        .after = rr) |>
 
-      # CALCULATE ENTRY POPULATION OF YEAR OF ANALYSIS (YOA)
-      dplyr::mutate(
-        entry_population_yoa = midyear_population_yoa + (deaths / 2),
-        .before = midyear_population_yoa) |>
+        # Hazard rate for calculating survival probabilities
+        hazard_rate = deaths / midyear_population_yoa,
+
+        # Get modification factor
+        # it works with both single exposure and exposure distribution
+        modification_factor = 1 - pop_fraction,
+        .after = rr) |>     
 
       # CALCULATE PROBABILITY OF SURVIVAL FROM START YEAR TO END YEAR & START YEAR TO MID YEAR
       dplyr::mutate(
         # probability of survival from start of year i to start of year i+1 (entry to entry)
         prob_survival =
-          (midyear_population_yoa - (deaths / 2)) /
-          (midyear_population_yoa + (deaths / 2) ),
+          (midyear_population_yoa - (fraction_lived * deaths)) /
+          (midyear_population_yoa + ((1 - fraction_lived) * deaths)),
 
         # Probability of survival from start to midyear
         # For example entry_pop = 100, prob_survival = 0.8 then end_of_year_pop = 100 * 0.8 = 80.
         # midyear_pop = 100 - (20/2) = 90.
-        prob_survival_until_midyear = 1 - ((1 - prob_survival) / 2),
-
-        # Hazard rate for calculating survival probabilities
-        hazard_rate = deaths / midyear_population_yoa,
-
-        .after = deaths)
+        prob_survival_until_midyear = 1 - ((1 - fraction_lived) * (1 - prob_survival)),   
+        .after = deaths) |>
+      
+       # CALCULATE ENTRY POPULATION OF YEAR OF ANALYSIS (YOA)
+      dplyr::mutate(
+        entry_population_yoa = midyear_population_yoa + ((1 - fraction_lived) * deaths),
+        .before = midyear_population_yoa) 
 
 
     # CALCULATE MODIFIED SURVIVAL PROBABILITIES
@@ -113,24 +117,23 @@ get_impact_with_lifetable <-
       dplyr::mutate(
         # For all ages min_age and higher calculate modified survival probabilities
         # Calculate first the boolean/logic column to speed up calculations below
-        age_end_over_min_age = age_end > min_age,
+        is_exposed_age = age_end > min_age,
 
         # Calculate modified hazard rate = modification factor * hazard rate = mod factor * (deaths / mid-year pop)
         hazard_rate_mod =
-          dplyr::if_else(age_end_over_min_age,
+          dplyr::if_else(is_exposed_age,
                          modification_factor * hazard_rate,
                          hazard_rate),
 
-        # Calculate modified survival probability =
-        # ( 2 - modified hazard rate ) / ( 2 + modified hazard rate )
+        # Calculate modified survival probability
         prob_survival_mod =
-          dplyr::if_else(age_end_over_min_age,
-                         (2 - hazard_rate_mod) / (2 + hazard_rate_mod),
+          dplyr::if_else(is_exposed_age,
+                         (1 - (fraction_lived * hazard_rate_mod)) / (1 + ((1 - fraction_lived) * hazard_rate_mod)),
                          prob_survival),
 
         prob_survival_until_midyear_mod =
-          dplyr::if_else(age_end_over_min_age,
-                         1 - ((1 - prob_survival_mod) / 2),
+          dplyr::if_else(is_exposed_age,
+                         1 - ((1 - fraction_lived) * (1 - prob_survival_mod)),
                          prob_survival_until_midyear),
 
         .after = deaths)
@@ -141,10 +144,11 @@ get_impact_with_lifetable <-
       tidyr::nest(
         data_by_age =
         c(yoa, age_group, age_start, age_end, bhd, deaths,
-          population,
+          population, fraction_lived, 
           modification_factor,
           prob_survival, prob_survival_until_midyear, hazard_rate,
-          age_end_over_min_age, prob_survival_mod, prob_survival_until_midyear_mod, hazard_rate_mod,
+          is_exposed_age, prob_survival_mod, prob_survival_until_midyear_mod, hazard_rate_mod,
+          fraction_lived,
           # These columns at the end to link with projections
           midyear_population_yoa, entry_population_yoa))
 
@@ -213,8 +217,7 @@ get_impact_with_lifetable <-
 
     # PREMATURE DEATHS (SINGLE YEAR EXPOSURE) ######################################################
     # YOA = YEAR OF ANALYSIS
-    if (health_outcome == "deaths" &
-        is_single_year_exposure) {
+    if (is_deaths && is_single_year_exposure) {
 
       lifetable_calculation <- lifetable_calculation |>
         # Premature deaths = YOA end-of-year population of unexposed minus exposed
@@ -246,7 +249,7 @@ get_impact_with_lifetable <-
 
     # YLL & PREMATURE DEATHS (CONSTANT EXPOSURE) ####################################################
 
-    if (health_outcome == "yll"| #And  ("yld", "daly") if yld for life table ever implemented
+    if (is_yll || #And  ("yld", "daly") if yld for life table ever implemented
          is_constant_exposure) {
 
 
@@ -267,16 +270,18 @@ get_impact_with_lifetable <-
 
         # Precompute complements
         death_prob <- 1 - prob_survival
+        n_ages <- base::nrow(df)      
 
         # Initialise matrices
-        entry_pop <- base::matrix(NA, nrow = base::nrow(df), ncol = n_years_projection,
+        entry_pop <- base::matrix(NA, nrow = n_ages, ncol = n_years_projection,
                                   # Row and column names
                                   # NULL because no row names
                                   dimnames = base::list(NULL, entry_names))
-        midyear_pop   <- base::matrix(NA, nrow = base::nrow(df), ncol = n_years_projection,
+        midyear_pop <- base::matrix(NA, nrow = n_ages, ncol = n_years_projection,
                                   dimnames = base::list(NULL, midyear_names))
-        deaths    <- base::matrix(NA, nrow = base::nrow(df), ncol = n_years_projection,
-                                  dimnames = base::list(NULL, death_names))
+        deaths <- base::matrix(NA, nrow = n_ages, ncol = n_years_projection,
+                                  dimnames = base::list(NULL, death_names))      
+        
 
         # Set initial year
         entry_pop[, 1] <- df[[entry_names[1]]]
@@ -288,7 +293,7 @@ get_impact_with_lifetable <-
         # i (index in the number of years) is used to select both the rows and the columns
 
         for (i in 1: (n_years_projection - 1)) {
-          # Round result to avoid floating-point precision issue
+          
           rows <- (i + 2):(n_years_projection + 1)
           # ENTRY POP YOA+1 <- ( ENTRY POP YOA ) * ( SURVIVAL PROBABILITY YOA )
           entry_pop[rows, i + 1] <- base::round(entry_pop[rows - 1, i] * prob_survival[rows - 1], 10)
@@ -463,7 +468,6 @@ get_impact_with_lifetable <-
 
     # GET DEATHS AND YLL FROM LIFETABLE
 
-
     # Store total impacts by age #########
     ## Sum impacts
     lifetable_calculation <- lifetable_calculation |>
@@ -487,12 +491,12 @@ get_impact_with_lifetable <-
               dplyr::mutate(.by = c(age_start, age_end),
                             population = ifelse(year == yoa, population, NA))
 
-            if({{health_outcome}} == "deaths"){
+            if(is_deaths && is_single_year_exposure){
               .x <- .x |>
                 ## Select first year of projection
                 dplyr::filter(year == yoa)
 
-            } else if ({{health_outcome}} == "yll"){
+            } else {
               .x <- .x |>
                 ## Select all years within time horizon
                 dplyr::filter(year <= last_year_projection )
