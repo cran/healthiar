@@ -17,8 +17,14 @@ library(dplyr)
 library(purrr)
 library(tidyr)
 library(knitr)
-library(terra)
-library(sf)
+
+## terra, sf and exactextractr are only suggested by healthiar. The chunks of
+## the section on prepare_exposure() are skipped when they are not installed,
+## for instance on the CRAN check machines that install no suggested package
+spatial_packages_available <-
+  requireNamespace("terra", quietly = TRUE) &&
+  requireNamespace("sf", quietly = TRUE) &&
+  requireNamespace("exactextractr", quietly = TRUE)
 
 ## ----eval=FALSE, include=TRUE-------------------------------------------------
 # results_pm_copd <- attribute_health(
@@ -320,7 +326,7 @@ output_attribute <- healthiar::attribute_health(
 
 ## ----eval=TRUE, include=TRUE, echo=TRUE---------------------------------------
 output_stratified <- output_attribute$health_detailed$results_raw |>
-      dplyr::group_by(info_column_1) |>
+      dplyr::group_by(info_education) |>
       dplyr::summarize(mean_impact = mean(impact))|>
       dplyr::pull(mean_impact) |>
       print()
@@ -334,26 +340,64 @@ output_attribute <- healthiar::attribute_health(
     rr_increment = 10,
     erf_shape = "log_linear",
     cutoff_central =  0,
-    age_group = base::rep(c("50_and_younger", "50_plus"), each = 4, times= 2),
-    sex = base::rep(c("female", "male"), each = 2, times = 4),
+    age_group = rep(c("50_and_younger", "50_plus"), each = 4, times= 2),
+    sex = rep(c("female", "male"), each = 2, times = 4),
     exp_central = c(6, 7, 8, 7, 8, 9, 8, 9,
                     10, 9, 10, 11, 10, 11, 12, 13),
     bhd_central = c(600, 700, 800, 700, 800, 900, 800, 900,
                     1000, 900, 1000, 1100, 1000, 1100, 1200, 1000),
-    geo_id_micro = base::rep(c("a", "b"), each = 8),
-    info = base::data.frame(
-      education = base::rep(c("without_master", "with_master"), times = 8)) # education level
+    geo_id_micro = rep(c("a", "b"), each = 8),
+    info = data.frame(
+      education = rep(c("without_master", "with_master"), times = 8)) # education level
   )
 
 ## ----eval=TRUE, include=TRUE, echo=TRUE---------------------------------------
 output_stratified <- output_attribute$health_detailed$results_raw |>
-      dplyr::group_by(info_column_1) |>
+      dplyr::group_by(info_education) |>
       dplyr::summarize(mean_impact = mean(impact))|>
       dplyr::pull(mean_impact) |>
       print()
 
 ## ----eval=TRUE, include=FALSE, echo=FALSE-------------------------------------
 rm(output_attribute, output_stratified)
+
+## ----eval=TRUE, include=TRUE, echo=TRUE---------------------------------------
+output_attribute <- healthiar::attribute_health(
+    info = data.frame(
+      pair = rep(c("pm2.5_copd", "no2_asthma"), each = 2)),
+    main_results_by = "pair",
+    exp_central    = c(8.85, 9.20, 22.1, 24.5),
+    cutoff_central = c(5, 5, 10, 10),
+    rr_central     = c(1.369, 1.369, 1.041, 1.041),
+    rr_increment   = 10,
+    erf_shape      = c("log_linear", "log_linear", "linear", "linear"),
+    bhd_central    = c(30747, 31500, 12000, 12500),
+    geo_id_micro   = rep(c("a", "b"), times = 2)
+  )
+
+## ----eval=TRUE, include=TRUE, echo=TRUE---------------------------------------
+output_attribute$health_main |>
+  dplyr::select(info_pair, geo_id_micro, erf_ci, impact_rounded) |>
+  print()
+
+## ----eval=TRUE, include=TRUE, echo=TRUE---------------------------------------
+output_sensitivity <- healthiar::attribute_health(
+    info = data.frame(rr_source = c("Liu 2020", "WHO 2021")),
+    main_results_by = "rr_source",
+    exp_central = c(8.85, 8.85),
+    cutoff_central = 5,
+    rr_central = c(1.369, 1.080),
+    rr_increment = 10,
+    erf_shape = "log_linear",
+    bhd_central = c(30747, 30747)
+  )
+
+output_sensitivity$health_main |>
+  dplyr::select(info_rr_source, erf_ci, impact_rounded) |>
+  print()
+
+## ----eval=TRUE, include=FALSE, echo=FALSE-------------------------------------
+rm(output_attribute, output_sensitivity)
 
 ## ----Examples using prepare_lifetable()---------------------------------------
 age_groups <- c(0, 5, 10, 15)
@@ -368,8 +412,8 @@ prepared_data <- healthiar::prepare_lifetable(
   # fraction_lived = 0.5 (default)
 )
 
-# Demographic adjustment for low infant mortality (first fraction_lived = 0.1)
-prepared_data_adjusting_for_low_infant_mortality <- healthiar::prepare_lifetable(
+# Age-group specific fraction of the age interval lived (first fraction_lived = 0.1)
+prepared_data_with_age_specific_fraction_lived <- healthiar::prepare_lifetable(
   age_group = age_groups,
   population = pop,
   bhd = bhd_counts,
@@ -680,7 +724,7 @@ print(results$health_detailed$results_raw$impact_per_100k_inhab)
 ## ----eval=TRUE, include=FALSE, echo=FALSE-------------------------------------
 rm(results)
 
-## -----------------------------------------------------------------------------
+## ----eval=spatial_packages_available------------------------------------------
 # exdat_pwm_1 = Pollution grid data
 exdat_pwm_1 <- terra::rast(system.file("extdata", "exdat_pwm_1.tif", package = "healthiar"))
 
@@ -693,28 +737,42 @@ pwm <- healthiar::prepare_exposure(
   population = sf::st_drop_geometry(exdat_pwm_2$population), # population per geographic sub-unit
   geo_id_macro = sf::st_drop_geometry(exdat_pwm_2$region)) # higher-level IDs to aggregate
 
-## ----echo=FALSE---------------------------------------------------------------
- knitr::kable(pwm$main)
+## ----echo=FALSE, eval=spatial_packages_available------------------------------
+ knitr::kable(as.data.frame(pwm$exposure_main))
 
-## ----eval=TRUE, include=FALSE, echo=FALSE-------------------------------------
+## ----eval=spatial_packages_available, include=FALSE, echo=FALSE---------------
 rm(exdat_pwm_1)
 rm(exdat_pwm_2)
 rm(pwm)
 
 ## -----------------------------------------------------------------------------
+results_cutoff_above_threshold <- healthiar::attribute_health(
+  approach_risk = "relative_risk",
+  erf_shape = "log_linear",
+  rr_central = 1.055,
+  rr_increment = 10,
+  prop_pop_exp = c(300000,200000,150000,120000,100000,70000,60000)/10000000,
+  exp_central = c(47,52,57,62,67,72,77),
+  # Effect threshold, i.e. the anchor of the exposure-response function
+  threshold = 45,
+  # Cut-off, i.e. the exposures below it are not quantified
+  cutoff_central = 55,
+  bhd_central = 50000)$health_main$impact_rounded
+
+## -----------------------------------------------------------------------------
 #setting up function parameters
-threshold_effect <- 45
+threshold <- 45
 RR <- 1.055
-threshold_calculation <- 55
+cutoff <- 55
 rr_increment <- 10
 
 # define categorical function, the ifelse condition enables the case distinction
 erf_function <- function(c){
-  output <- ifelse(c<threshold_calculation, 1, exp((log(RR)/rr_increment)*(c-threshold_effect)))
+  output <- ifelse(c<cutoff, 1, exp((log(RR)/rr_increment)*(c-threshold)))
   return(output)
 }
 # attribute_health
-results_catERF_different_calc_thesh <- healthiar::attribute_health(
+results_catERF_different_cutoff <- healthiar::attribute_health(
   approach_risk = "relative_risk",
   erf_eq_central = erf_function,
   prop_pop_exp = c(300000,200000,150000,120000,100000,70000,60000)/10000000,
@@ -753,9 +811,10 @@ legend("topleft",
        lwd = c(NA, 2))
 
 
-## ----Cut-off vs. threshold----------------------------------------------------
-# Case A: Epidemiological Cut-off (Curve shifted by healthiar)
-epi_cutoff <- healthiar::attribute_health(
+## ----shifted vs unshifted erf-------------------------------------------------
+# Case A: Shifted exposure-response function
+# The function is parameterized on the exposure above the cut-off
+shifted_erf <- healthiar::attribute_health(
   approach_risk = "absolute_risk",
   exp_central = c(50, 60, 70),
   pop_exp = c(300000,200000,150000),
@@ -763,13 +822,13 @@ epi_cutoff <- healthiar::attribute_health(
   erf_eq_central = "78.9270 - 3.1162 * (c + 53) + 0.0342 * (c + 53)^2"
 )
 
-# Case B: Unshifted Policy Threshold (Exposure truncated, curve unshifted)
-policy_threshold <- healthiar::attribute_health(
+# Case B: Unshifted exposure-response function
+# The function is parameterized on raw exposure levels
+unshifted_erf <- healthiar::attribute_health(
   approach_risk = "absolute_risk",
   exp_central = c(50, 60, 70),
   pop_exp = c(300000,200000,150000),
-  cutoff_central = 0,
-  erf_eq_central = "ifelse(c >= 53, 78.9270 - 3.1162 * c + 0.0342 * c^2, 0)"
+  erf_eq_central = "78.9270 - 3.1162 * c + 0.0342 * c^2"
 )
 
 ## -----------------------------------------------------------------------------
