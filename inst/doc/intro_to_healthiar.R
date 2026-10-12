@@ -811,8 +811,17 @@ legend("topleft",
        lwd = c(NA, 2))
 
 
-## ----shifted vs unshifted erf-------------------------------------------------
-# Case A: Shifted exposure-response function
+## ----unshifted vs shifted erf-------------------------------------------------
+# Case A: Unshifted exposure-response function
+# The function is parameterized on raw exposure levels
+unshifted_erf <- healthiar::attribute_health(
+  approach_risk = "absolute_risk",
+  exp_central = c(50, 60, 70),
+  pop_exp = c(300000,200000,150000),
+  erf_eq_central = "78.9270 - 3.1162 * c + 0.0342 * c^2"
+)
+
+# Case B: Shifted exposure-response function
 # The function is parameterized on the exposure above the cut-off
 shifted_erf <- healthiar::attribute_health(
   approach_risk = "absolute_risk",
@@ -820,15 +829,6 @@ shifted_erf <- healthiar::attribute_health(
   pop_exp = c(300000,200000,150000),
   cutoff_central = 53,
   erf_eq_central = "78.9270 - 3.1162 * (c + 53) + 0.0342 * (c + 53)^2"
-)
-
-# Case B: Unshifted exposure-response function
-# The function is parameterized on raw exposure levels
-unshifted_erf <- healthiar::attribute_health(
-  approach_risk = "absolute_risk",
-  exp_central = c(50, 60, 70),
-  pop_exp = c(300000,200000,150000),
-  erf_eq_central = "78.9270 - 3.1162 * c + 0.0342 * c^2"
 )
 
 ## -----------------------------------------------------------------------------
