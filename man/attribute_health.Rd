@@ -72,7 +72,7 @@ attribute_health(
 
 \item{dw_central, dw_lower, dw_upper}{\code{Numeric value} or \code{numeric vector} providing the \strong{disability weight} associated with the morbidity health outcome of interest and (optionally) the corresponding lower bound and the upper 95\% confidence interval bounds. \emph{Only applicable in assessments of YLD (years lived with disability).}}
 
-\item{duration_central, duration_lower, duration_upper}{\code{Numeric value} or \code{numeric vector} providing the \strong{duration} associated with the morbidity health outcome of interest in years and (optionally) the corresponding lower and upper bounds of the 95\% confidence interval. Default: 1. See Details for more info. \emph{Only applicable in assessments of YLD (years lived with disability).}}
+\item{duration_central, duration_lower, duration_upper}{\code{Numeric value} or \code{numeric vector} providing the \strong{duration} associated with the morbidity health outcome of interest in years and (optionally) the corresponding lower and upper bounds of the 95\% confidence interval. Required if \code{dw_central} is entered. See Details for more info. \emph{Only applicable in assessments of YLD (years lived with disability).}}
 
 \item{info}{\code{String}, \code{data frame} or \code{tibble} providing \strong{information about the assessment}. This will be added to the results table as column(s) keeping the name(s) that you entered with the prefix \code{info_} (e.g. a column \code{education} becomes \code{info_education}) if a \code{data frame} is entered, or as one single column called \code{info} if a vector is entered. Different values define \strong{sub-groups} (e.g. education levels or exposure-outcome pairs), which are assessed separately and summed in the main results unless named in \code{main_results_by}. Values that only differ by age or sex (e.g. age bands) do not define additional sub-groups. \emph{Optional argument.}}
 
@@ -146,6 +146,9 @@ The health metric you put in (e.g. absolute disease cases, deaths per 100 000 po
 
 \strong{Function arguments}
 
+\code{..._lower}, \code{..._upper}
+Enter \code{NA} for the rows without confidence interval. Their lower and upper impacts are \code{NA}, and so are the sums that include them.
+
 \code{exp_central}, \code{exp_lower}, \code{exp_upper}
 In case of exposure bands enter only one exposure value per band (e.g. the means of the lower and upper bounds of the exposure bands).
 
@@ -204,7 +207,7 @@ More specifically, see chapters:
  \item \href{https://swisstph.github.io/healthiar/articles/intro_to_healthiar.html#cutoff-vs-threshold}{Cut-off vs. threshold}}
 }
 \examples{
-# Goal: attribute lung cancer cases to population-weighted PM2.5 exposure
+# Goal: attribute COPD cases to population-weighted PM2.5 exposure
 # using relative risk
 
 results <- attribute_health(
@@ -213,7 +216,7 @@ results <- attribute_health(
   rr_increment = 10,             # per \\mu g / m^3 increase in PM2.5 exposure
   exp_central = 8.85,            # Central exposure estimate in \\mu g / m^3
   cutoff_central = 5,            # \\mu g / m^3
-  bhd_central = 30747            # Baseline health data: lung cancer incidence
+  bhd_central = 30747            # Baseline health data: COPD incidence
  )
 
 results$health_main$impact_rounded # Attributable cases

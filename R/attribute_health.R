@@ -50,6 +50,9 @@
 #'
 #' \strong{Function arguments}
 #'
+#' \code{..._lower}, \code{..._upper}
+#' Enter \code{NA} for the rows without confidence interval. Their lower and upper impacts are \code{NA}, and so are the sums that include them.
+#'
 #' \code{exp_central}, \code{exp_lower}, \code{exp_upper}
 #' In case of exposure bands enter only one exposure value per band (e.g. the means of the lower and upper bounds of the exposure bands).
 #'
@@ -115,7 +118,7 @@
 #'
 # EXAMPLES #####################################################################
 #' @examples
-#' # Goal: attribute lung cancer cases to population-weighted PM2.5 exposure
+#' # Goal: attribute COPD cases to population-weighted PM2.5 exposure
 #' # using relative risk
 #'
 #' results <- attribute_health(
@@ -124,7 +127,7 @@
 #'   rr_increment = 10,             # per \\mu g / m^3 increase in PM2.5 exposure
 #'   exp_central = 8.85,            # Central exposure estimate in \\mu g / m^3
 #'   cutoff_central = 5,            # \\mu g / m^3
-#'   bhd_central = 30747            # Baseline health data: lung cancer incidence
+#'   bhd_central = 30747            # Baseline health data: COPD incidence
 #'  )
 #'
 #' results$health_main$impact_rounded # Attributable cases

@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Vignette: Using healthiar with Python</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Vignette: Using healthiar with Python</h1>
+
+
+<div id="TOC">
+<ul>
+<li><a href="#requirements" id="toc-requirements">Requirements</a></li>
+<li><a href="#installation" id="toc-installation">Installation</a></li>
+<li><a href="#modules" id="toc-modules">Modules</a>
+<ul>
+<li><a href="#wrapper" id="toc-wrapper">Wrapper</a></li>
+<li><a href="#data-conversion" id="toc-data-conversion">Data
+conversion</a></li>
+</ul></li>
+<li><a href="#examples" id="toc-examples">Examples</a>
+<ul>
+<li><a href="#example-1-typical-case" id="toc-example-1-typical-case">Example 1: Typical case</a></li>
+<li><a href="#example-2-function-input" id="toc-example-2-function-input">Example 2: Function input</a></li>
+<li><a href="#example-3-spatial-input" id="toc-example-3-spatial-input">Example 3: Spatial input</a></li>
+</ul></li>
+</ul>
+</div>
+
+<p>Using <code>healthiar</code> in Python is possible with the dedicated
+<a href="https://pypi.org/project/healthiar/">wrapper package</a>. The
+wrapper consists of a Python program that allows you to use the
+<code>healthiar</code> R package as if it were a Python package. In
+technical terms, the Python package works by running R embedded in
+Python. In addition to the wrapper, the package contains functions to
+convert Python data to R and back.</p>
+<p>The Python wrapper for <code>healthiar</code> is an implementation of
+the <a href="https://rpy2.github.io/"><code>rpy2</code>
+interface</a>.</p>
+<div id="requirements" class="section level1">
+<h1>Requirements</h1>
+<p>To use the Python package, you need Python (version 3.9 or newer) and
+R, with the <code>healthiar</code> package installed. Click <a href="https://swisstph.github.io/healthiar/index.html#installation">here</a>
+for instructions on installing the R package.</p>
+</div>
+<div id="installation" class="section level1">
+<h1>Installation</h1>
+<ol style="list-style-type: decimal">
+<li><p>Install the <code>healthiar</code> Python wrapper package from <a href="https://pypi.org/project/healthiar/">PyPI</a> with
+<code>pip</code>. Run this command in a terminal (e.g., Windows
+PowerShell or the terminal of your IDE), not in a Python console:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="ex">pip</span> install healthiar</span></code></pre></div>
+<p>Note that this does <strong>not</strong> install the
+<code>healthiar</code> R package.</p></li>
+<li><p>Add the path of your R installation as environment variable
+(<strong>Required</strong>). In Python, you can do this as follows:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>os.environ[<span class="st">&quot;PATH&quot;</span>] <span class="op">=</span> <span class="st">&quot;/path/to/R/R-4.6.0/bin/x64&quot;</span> <span class="op">+</span> os.pathsep <span class="op">+</span> os.environ[<span class="st">&quot;PATH&quot;</span>]</span></code></pre></div></li>
+</ol>
+</div>
+<div id="modules" class="section level1">
+<h1>Modules</h1>
+<div id="wrapper" class="section level2">
+<h2>Wrapper</h2>
+<p>The <code>healthiar.py</code> module loads the R package in the
+background, allowing you to call any function available in
+<code>healthiar</code>. Accessing a <code>healthiar</code> function is
+possible with the usual Python dot notation,
+e.g. <code>healthiar.monetize()</code>.</p>
+</div>
+<div id="data-conversion" class="section level2">
+<h2>Data conversion</h2>
+<p>The <code>conversion.py</code> module contains the functions for
+converting input and output data, needed for a correct functioning of
+the wrapper:</p>
+<ul>
+<li><p><code>py_to_r()</code>: To convert Python input data to the
+<code>rpy2</code> format;</p></li>
+<li><p><code>r_to_py()</code>: To convert the <code>rpy2</code> output
+back to Python.</p></li>
+</ul>
+<p>In some cases (e.g., floats and strings) the conversion from Python
+to <code>rpy2</code> object happens automatically. In other cases (e.g.,
+tuples and lists) the conversion needs to be made explicit through a
+call to <code>py_to_r()</code>. The table below gives the R object class
+corresponding to each relevant Python class, and indicates when to use
+the conversion function.</p>
+<table>
+<colgroup>
+<col width="52%" />
+<col width="13%" />
+<col width="33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Python type</th>
+<th>R class</th>
+<th>Conversion</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>int</code></td>
+<td><code>integer</code></td>
+<td><em>automatic</em></td>
+</tr>
+<tr class="even">
+<td><code>float</code></td>
+<td><code>double</code></td>
+<td><em>automatic</em></td>
+</tr>
+<tr class="odd">
+<td><code>str</code></td>
+<td><code>character</code></td>
+<td><em>automatic</em></td>
+</tr>
+<tr class="even">
+<td><code>tuple</code>, <code>list</code></td>
+<td><code>vector</code></td>
+<td><code>py_to_r()</code></td>
+</tr>
+<tr class="odd">
+<td><code>pandas.DataFrame</code>, <code>pandas.Series</code>,
+<code>numpy.ndarray</code></td>
+<td><code>data.frame</code></td>
+<td><code>py_to_r()</code></td>
+</tr>
+<tr class="even">
+<td><code>function</code></td>
+<td><code>function</code></td>
+<td><em>use a decorator (see example 2)</em></td>
+</tr>
+<tr class="odd">
+<td><code>geopandas.geodataframe.GeoDataFrame</code></td>
+<td><code>sf</code></td>
+<td><code>py_to_r()</code> <em>(see example 3)</em></td>
+</tr>
+<tr class="even">
+<td><code>xarray.core.dataset.Dataset</code></td>
+<td><code>SpatRaster</code></td>
+<td><code>py_to_r()</code> <em>(see example 3)</em></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="examples" class="section level1">
+<h1>Examples</h1>
+<div id="example-1-typical-case" class="section level2">
+<h2>Example 1: Typical case</h2>
+<p>This example illustrates a typical workflow, in this case comparing
+the health impact under two exposure scenarios. To start, let’s make a
+call to <code>attribute_health()</code> for the reference scenario,
+after doing the necessary conversions of the input data:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="im">from</span> healthiar.healthiar <span class="im">import</span> healthiar</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="im">from</span> healthiar.conversion <span class="im">import</span> py_to_r, r_to_py</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">## convert Python lists to R vectors</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>exp_central_A <span class="op">=</span> py_to_r([<span class="dv">10</span>, <span class="dv">18</span>])</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>prop_pop_exp <span class="op">=</span> py_to_r([<span class="fl">0.7</span>, <span class="fl">0.3</span>])</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">## call healthiar function</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>scenario_A <span class="op">=</span> healthiar.attribute_health(</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>    exp_central <span class="op">=</span> exp_central_A,</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>    prop_pop_exp <span class="op">=</span> prop_pop_exp,</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>    cutoff_central <span class="op">=</span> <span class="dv">5</span>,</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>    rr_central <span class="op">=</span> <span class="fl">1.08</span>,</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>    rr_increment <span class="op">=</span> <span class="dv">10</span>,</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>    erf_shape <span class="op">=</span> <span class="st">&quot;linear_log&quot;</span>,</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>    bhd_central <span class="op">=</span> <span class="dv">1200</span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>)</span></code></pre></div>
+<p>Let’s now calculate the health impact under a scenario where
+population exposure is halved, by passing the output of the previous
+call to <code>mod()</code> along with the alternative exposure
+values:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>exp_central_B <span class="op">=</span> py_to_r([<span class="dv">5</span>, <span class="dv">9</span>])</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>scenario_B <span class="op">=</span> healthiar.attribute_mod(</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>    output_attribute <span class="op">=</span> scenario_A,</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>    exp_central <span class="op">=</span> exp_central_B</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>)</span></code></pre></div>
+<p>The final step in the analysis is to calculate the hypothetical
+avoided impact, by passing both outputs to <code>compare()</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>results_comparison <span class="op">=</span> healthiar.compare(</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>    approach_comparison <span class="op">=</span> <span class="st">&quot;delta&quot;</span>, <span class="co"># or &quot;pif&quot; (population impact fraction)</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>    output_attribute_scen_1 <span class="op">=</span> scenario_A,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>    output_attribute_scen_2 <span class="op">=</span> scenario_B</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>)</span></code></pre></div>
+<p>We can now convert the end result back to Python:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>py_results_comparison <span class="op">=</span> r_to_py(results_comparison)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>py_results_comparison[<span class="st">&quot;health_main&quot;</span>][[<span class="st">&quot;impact&quot;</span>, <span class="st">&quot;impact_rounded&quot;</span>, <span class="st">&quot;impact_scen_1&quot;</span>, <span class="st">&quot;impact_scen_2&quot;</span>, <span class="st">&quot;bhd&quot;</span>, <span class="st">&quot;exp_type&quot;</span>, <span class="st">&quot;exp_scen_1&quot;</span>, <span class="st">&quot;exp_scen_2&quot;</span>]].head()</span></code></pre></div>
+<table style="width:100%;">
+<colgroup>
+<col width="8%" />
+<col width="14%" />
+<col width="13%" />
+<col width="13%" />
+<col width="5%" />
+<col width="21%" />
+<col width="11%" />
+<col width="11%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>impact</th>
+<th>impact_rounded</th>
+<th>impact_scen_1</th>
+<th>impact_scen_2</th>
+<th>bhd</th>
+<th>exp_type</th>
+<th>exp_scen_1</th>
+<th>exp_scen_2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>56.1057</td>
+<td>56.0</td>
+<td>70.919858</td>
+<td>14.814158</td>
+<td>1200</td>
+<td>exposure_distribution</td>
+<td>10, 18</td>
+<td>5, 9</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="example-2-function-input" class="section level2">
+<h2>Example 2: Function input</h2>
+<p>To pass a Python function as input to a function from
+<code>healthiar</code>, it needs to be wrapped in the <code>rpy2</code>
+function <code>rternalize()</code> using a decorator (<code>@</code>).
+Let’s take the <code>CubicSpline()</code> function from
+<code>scipy</code> as an example:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="im">import</span> rpy2.rinterface <span class="im">as</span> ri</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="im">from</span> scipy.interpolate <span class="im">import</span> CubicSpline</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">## define ERF with decorator (&#39;@&#39;)</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="at">@ri.rternalize</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="kw">def</span> erf_fun(x):</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>    cs <span class="op">=</span> CubicSpline(</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>      x <span class="op">=</span> [<span class="dv">0</span>, <span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">15</span>, <span class="dv">20</span>, <span class="dv">25</span>, <span class="dv">30</span>, <span class="dv">50</span>, <span class="dv">70</span>, <span class="dv">90</span>, <span class="dv">110</span>],</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>      y <span class="op">=</span> [<span class="fl">1.00</span>, <span class="fl">1.04</span>, <span class="fl">1.08</span>, <span class="fl">1.12</span>, <span class="fl">1.16</span>, <span class="fl">1.20</span>, <span class="fl">1.23</span>, <span class="fl">1.35</span>, <span class="fl">1.45</span>, <span class="fl">1.53</span>, <span class="fl">1.60</span>]</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>    )</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">float</span>(cs(x)[<span class="dv">0</span>])</span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a><span class="co">## pass ERF to attribute_health()</span></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>results_pm_copd_mr_brt <span class="op">=</span> healthiar.attribute_health(</span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>  exp_central <span class="op">=</span> <span class="fl">8.85</span>,</span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>  bhd_central <span class="op">=</span> <span class="dv">30747</span>,</span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a>  cutoff_central <span class="op">=</span> <span class="dv">0</span>,</span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>  erf_eq_central <span class="op">=</span> erf_fun</span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a>)</span></code></pre></div>
+<blockquote>
+<p>Note: The use of a decorator is only required when passing Python
+functions as <code>erf_eq_central</code>. Passing equations in the form
+of a string requires no conversion.</p>
+</blockquote>
+</div>
+<div id="example-3-spatial-input" class="section level2">
+<h2>Example 3: Spatial input</h2>
+<p>With <code>prepare_exposure()</code>, it’s possible to obtain
+exposure data from spatial data formats, where the output is compatible
+with <code>healthiar</code> functions such as
+<code>attribute_health()</code>. Let’s calculate a population-weighted
+average concentration of PM<sub>2.5</sub> for each region in Brussels,
+based on the population by municipality:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="im">import</span> geopandas <span class="im">as</span> gpd <span class="co"># to read spatial vector data</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="im">import</span> xarray <span class="im">as</span> xr <span class="co"># to read spatial raster data</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="im">import</span> rioxarray <span class="co"># rasterio engine</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="im">from</span> importlib.resources <span class="im">import</span> files <span class="co"># to access package data files</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">## read spatial data</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>path <span class="op">=</span> files(<span class="st">&quot;healthiar.data&quot;</span>)</span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>exdat_pwm_1 <span class="op">=</span> xr.open_dataset(path.joinpath(<span class="st">&quot;pm25.tif&quot;</span>), engine <span class="op">=</span> <span class="st">&quot;rasterio&quot;</span>, masked <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>exdat_pwm_2 <span class="op">=</span> gpd.read_file(path.joinpath(<span class="st">&quot;municipalities_brussels.gpkg&quot;</span>))</span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">## extract non-spatial inputs</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>population <span class="op">=</span> exdat_pwm_2[<span class="st">&quot;population&quot;</span>]</span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>geo_id_macro <span class="op">=</span> exdat_pwm_2[<span class="st">&quot;region&quot;</span>]</span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">## convert to R format</span></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a>r_exdat_pwm_1 <span class="op">=</span> py_to_r(exdat_pwm_1)</span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a>r_exdat_pwm_2 <span class="op">=</span> py_to_r(exdat_pwm_2)</span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a>r_population <span class="op">=</span> py_to_r(population)</span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a>r_geo_id_macro <span class="op">=</span> py_to_r(geo_id_macro)</span>
+<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a></span>
+<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a>pwm <span class="op">=</span> healthiar.prepare_exposure(</span>
+<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a>  poll_grid <span class="op">=</span> r_exdat_pwm_1, </span>
+<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a>  geo_units <span class="op">=</span> r_exdat_pwm_2,</span>
+<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a>  population <span class="op">=</span> r_population,</span>
+<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a>  geo_id_macro <span class="op">=</span> r_geo_id_macro</span>
+<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -73,23 +73,16 @@ results_noise_ha <- attribute_health(
   erf_eq_central = "78.9270-3.1162*c+0.0342*c^2" # exposure-response function
 )
 
-## ----echo=FALSE---------------------------------------------------------------
-results_noise_ha |> 
+## -----------------------------------------------------------------------------
+results_noise_ha |>
   purrr::pluck("health_main") |>
   dplyr::select(erf_eq, erf_ci, impact_rounded) |> 
   knitr::kable() # Prints tibble in a minimal layout
 
-## ----eval=FALSE, include=TRUE, echo=TRUE--------------------------------------
-# results_noise_ha$health_detailed$results_raw
-
-## ----echo=FALSE, include=TRUE, eval=TRUE--------------------------------------
-results_noise_ha[["health_detailed"]][["results_raw"]] |> 
-  select(exp_category, exp, pop_exp, impact) |> 
+## -----------------------------------------------------------------------------
+results_noise_ha[["health_detailed"]][["results_raw"]] |>
+  dplyr::select(exp_category, exp, pop_exp, impact) |>
   knitr::kable()
-
-## ----eval=FALSE, include=TRUE, echo=TRUE--------------------------------------
-# erf_eq_central <-
-#   "exp(0.2969*log((pmax(0,c-2.4)/1.9+1))/(1+exp(-(pmax(0,c-2.4)-12)/40.2)))"
 
 ## -----------------------------------------------------------------------------
 results_noise_ha <- attribute_health(
@@ -99,16 +92,17 @@ results_noise_ha <- attribute_health(
   erf_eq_central = "78.9270-3.1162*c+0.0342*c^2"
 )
 
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
-# results_noise_ha$health_main
-
-## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
-results_noise_ha[["health_main"]] |> 
+## -----------------------------------------------------------------------------
+results_noise_ha[["health_main"]] |>
   dplyr::select(exp_category, impact) |> 
   knitr::kable()
 
 ## ----eval=TRUE, include=FALSE, echo=FALSE-------------------------------------
 rm(results_noise_ha)
+
+## ----eval=FALSE, include=TRUE, echo=TRUE--------------------------------------
+# erf_eq_central <-
+#   "exp(0.2969*log((pmax(0,c-2.4)/1.9+1))/(1+exp(-(pmax(0,c-2.4)-12)/40.2)))"
 
 ## -----------------------------------------------------------------------------
 results_iteration <- attribute_health(
@@ -124,7 +118,7 @@ results_iteration <- attribute_health(
     bhd_central = c(4000, 2500, 3000, 1500, 500)
 )
 
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # results_iteration$health_main
 
 ## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
@@ -132,7 +126,7 @@ results_iteration[["health_main"]] |>
   dplyr::select(geo_id_macro, impact_rounded, erf_ci, exp_ci, bhd_ci) |> 
   knitr::kable()
 
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # results_iteration$health_detailed$results_raw
 
 ## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
@@ -159,7 +153,7 @@ results_iteration_ar <- attribute_health(
     erf_eq_central = "78.9270-3.1162*c+0.0342*c^2"
 )
 
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # results_iteration_ar$health_main
 
 ## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
@@ -167,7 +161,7 @@ results_iteration_ar[["health_main"]] |>
   dplyr::select(geo_id_macro, impact_rounded, erf_ci, exp_ci) |> 
   knitr::kable()
 
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # results_iteration_ar$health_detailed$results_by_geo_id_micro
 
 ## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
@@ -194,7 +188,7 @@ results_pm_copd <- attribute_health(
     bhd_upper = 32000 # upper 95% confidence interval estimate of BHD
 ) 
 
-## ----eval=FALSE, echo=TRUE, include=FALSE-------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # results_pm_copd$health_detailed$results_raw
 
 ## ----echo=FALSE---------------------------------------------------------------
@@ -210,14 +204,14 @@ results_pm_copd_summarized <-
     n_sim = 100
 )
 
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # results_pm_copd_summarized$uncertainty_main
 
 ## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
 results_pm_copd_summarized$uncertainty_main |> 
   knitr::kable()
 
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # results_pm_copd_summarized$uncertainty_detailed$impact_by_sim
 
 ## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
@@ -392,6 +386,7 @@ output_sensitivity <- healthiar::attribute_health(
     bhd_central = c(30747, 30747)
   )
 
+## ----eval=TRUE, include=TRUE, echo=TRUE---------------------------------------
 output_sensitivity$health_main |>
   dplyr::select(info_rr_source, erf_ci, impact_rounded) |>
   print()
@@ -438,7 +433,7 @@ results_pm_yll <- attribute_lifetable(
   bhd_central = exdat_lifetable$deaths
 ) 
 
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # results_pm_yll$health_main
 
 ## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
@@ -447,21 +442,21 @@ results_pm_yll$health_main |>
   dplyr::select(impact_rounded, erf_ci, exp_ci, bhd_ci) |> 
   knitr::kable()
 
-## -----------------------------------------------------------------------------
-results_pm_yll$health_detailed$results_raw |>
-  dplyr::summarize(
-    .by = year, 
-    impact = sum(impact, na.rm = TRUE)
-  )
+## ----eval=FALSE---------------------------------------------------------------
+# results_pm_yll$health_detailed$results_raw |>
+#   dplyr::summarize(
+#     .by = year,
+#     impact = sum(impact, na.rm = TRUE)
+#   )
 
-## -----------------------------------------------------------------------------
+## ----echo=FALSE---------------------------------------------------------------
 results_pm_yll$health_detailed$results_raw |>
   dplyr::summarize(
     .by = year, 
     impact = sum(impact, na.rm = TRUE)) |>
   knitr::kable()
 
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # results_pm_yll$health_detailed$intermediate_calculations |>
 #   dplyr::filter(sex == "female") |>
 #   dplyr::pull(impact_by_age_and_year) |>
@@ -476,7 +471,7 @@ results_pm_yll$health_detailed$intermediate_calculations |>
   dplyr::slice( ( dplyr::n() - 8 ) : dplyr::n() ) |> 
   knitr::kable()
 
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # results_pm_yll$health_detailed$intermediate_calculations|>
 #   dplyr::filter(sex == "female") |>
 #   dplyr::pull(projection_if_exposed_by_age_and_year) |>
@@ -492,7 +487,7 @@ results_pm_yll$health_detailed$intermediate_calculations|>
   dplyr::slice( ( dplyr::n() - 8 ) : dplyr::n() ) |>  
   knitr::kable()
 
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # results_pm_yll$health_detailed$intermediate_calculations|>
 #   dplyr::filter(sex == "female") |>
 #   dplyr::pull(projection_if_unexposed_by_age_and_year) |>
@@ -525,7 +520,7 @@ results_pm_deaths <- attribute_lifetable(
   bhd_central = exdat_lifetable$deaths
 )
 
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # results_pm_deaths$health_main$impact
 
 ## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
@@ -534,7 +529,7 @@ results_pm_deaths$health_main |>
   dplyr::select(impact_rounded, erf_ci, exp_ci, bhd_ci) |> 
   knitr::kable()
 
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # results_pm_deaths$health_detailed$intermediate_calculations|>
 #   dplyr::filter(sex == "female") |>
 #   dplyr::pull(projection_if_unexposed_by_age_and_year) |>
@@ -563,7 +558,7 @@ results_pm_copd_yld  <- attribute_health(
   dw_central = 0.2
 )
 
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # results_pm_copd_yld$health_main
 
 ## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
@@ -577,9 +572,9 @@ results_daly <- daly(
      output_attribute_yld = results_pm_copd_yld
 )
 
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # results_daly$health_main |>
-#   select(impact_yll_rounded, impact_yld_rounded, impact_rounded)
+#   dplyr::select(impact_yll_rounded, impact_yld_rounded, impact_rounded)
 
 ## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
 results_daly$health_main |> 
@@ -588,6 +583,12 @@ results_daly$health_main |>
 
 ## ----eval=TRUE, include=FALSE, echo=FALSE-------------------------------------
 rm(results_daly, results_pm_yll, results_pm_copd_yld)
+
+## ----eval=FALSE---------------------------------------------------------------
+# results_daly_comparison <- daly(
+#   output_attribute_yll = comparison_yll, # compare() output with YLL
+#   output_attribute_yld = comparison_yld  # compare() output with YLD
+# )
 
 ## -----------------------------------------------------------------------------
 scenario_A <- attribute_health(
@@ -639,7 +640,7 @@ results_comparison <- healthiar::compare(
   output_attribute_scen_2 = scenario_B
 )
 
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # results_comparison$health_main
 
 ## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
@@ -737,7 +738,7 @@ pwm <- healthiar::prepare_exposure(
   population = sf::st_drop_geometry(exdat_pwm_2$population), # population per geographic sub-unit
   geo_id_macro = sf::st_drop_geometry(exdat_pwm_2$region)) # higher-level IDs to aggregate
 
-## ----echo=FALSE, eval=spatial_packages_available------------------------------
+## ----eval=spatial_packages_available------------------------------------------
  knitr::kable(as.data.frame(pwm$exposure_main))
 
 ## ----eval=spatial_packages_available, include=FALSE, echo=FALSE---------------
@@ -840,12 +841,12 @@ monetized_pm_copd <- monetize(
     valuation = 50000 # E.g. EURO
 )
 
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # monetized_pm_copd$monetization_main
 
 ## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
 monetized_pm_copd$monetization_main |> 
-  select(erf_ci, monetized_impact) |> 
+  dplyr::select(erf_ci, monetized_impact) |> 
   knitr::kable()
 
 ## -----------------------------------------------------------------------------
@@ -853,6 +854,34 @@ results <- monetize(
   impact = 1151,
   valuation = 100
 )
+
+## -----------------------------------------------------------------------------
+results_pairs <- attribute_health(
+    info = data.frame(
+      pair = rep(c("pm2.5_copd", "no2_asthma"), each = 2)),
+    main_results_by = "pair",
+    exp_central    = c(8.85, 9.20, 22.1, 24.5),
+    cutoff_central = c(5, 5, 10, 10),
+    rr_central     = c(1.369, 1.369, 1.041, 1.041),
+    rr_increment   = 10,
+    erf_shape      = c("log_linear", "log_linear", "linear", "linear"),
+    bhd_central    = c(30747, 31500, 12000, 12500),
+    geo_id_micro   = rep(c("a", "b"), times = 2)
+  )
+
+monetized_pairs <- monetize(
+    output_attribute = results_pairs,
+    valuation      = c(50000, 50000, 3000, 3000), # E.g. EURO per case
+    discount_rate  = c(0.03, 0.03, 0.01, 0.01),
+    discount_shape = rep(c("exponential", "hyperbolic_mazur_1987"), each = 2),
+    n_years = 5
+)
+
+## ----eval=TRUE, include=TRUE, echo=TRUE---------------------------------------
+monetized_pairs$monetization_main |>
+  dplyr::select(info_pair, geo_id_micro, valuation, discount_rate,
+                discount_shape, monetized_impact_rounded) |>
+  knitr::kable()
 
 ## -----------------------------------------------------------------------------
 cba <- cba(
@@ -909,7 +938,7 @@ social <- healthiar::socialize(
   increasing_deprivation = TRUE)
 
 
-## ----echo=FALSE---------------------------------------------------------------
+## -----------------------------------------------------------------------------
 social$social_main |> 
   dplyr::select(c(parameter, difference_type, 
                   difference_compared_with, difference_value, 
@@ -930,7 +959,7 @@ mdi <- prepare_mdi(
 
 ## ----eval=FALSE, include=TRUE, echo=TRUE--------------------------------------
 # mdi$mdi_main |>
-#   select(geo_id_micro, MDI, MDI_index)
+#   dplyr::select(geo_id_micro, MDI, MDI_index)
 
 ## ----eval=TRUE, include=TRUE, echo=FALSE--------------------------------------
 mdi$mdi_main |> 
@@ -979,12 +1008,12 @@ exdat_noise |>
 #     )$health_main$impact_rounded
 #   }
 
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # write.csv(x = results_pm_copd$health_main, file = "exported_results/results_pm_copd.csv")
 
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # save(results_pm_copd, file = "exported_results/results_pm_copd.Rdata")
 
-## ----eval=FALSE, include=FALSE, echo=TRUE-------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 # openxlsx::write.xlsx(x = results_pm_copd$health_main, file = "exported_results/results_pm_copd.xlsx")
 

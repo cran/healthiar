@@ -4585,8 +4585,24 @@ testthat::test_that("error if dw higher than 1", {
         rr_central = 1.05,
         rr_increment = 10,
         dw_central = 1.1,
+        duration_central = 1,
         erf_shape = "log_linear"),
     regexp = "The values in the following arguments must not be higher than 1: dw_central.")
+})
+
+testthat::test_that("error if dw but no duration", {
+
+  testthat::expect_error(
+    object =
+      healthiar::attribute_health(
+        exp_central = 8.85,
+        cutoff_central = 5,
+        bhd_central = 25000,
+        rr_central = 1.118,
+        rr_increment = 10,
+        erf_shape = "log_linear",
+        dw_central = 0.5),
+    regexp = "You entered dw_central but no duration_central.")
 })
 
 testthat::test_that("error if not lower>central>upper", {
@@ -5183,4 +5199,45 @@ testthat::test_that("results the same |main_results_by|several_dimensions|", {
   testthat::expect_equal(
     object = by_pair_and_geo$health_main$impact,
     expected = attribute_two_pairs_by("pair")$health_main$impact)
+})
+
+testthat::test_that("results the same |main_results_by|info_name_with_ci|", {
+
+  # The uncertainty columns were identified by the string "_ci", which is also
+  # in info_city_name. health_main then only kept the cities whose name
+  # contains "central", i.e. none, and was empty
+  output_attribute <-
+    healthiar::attribute_health(
+      info = data.frame(city_name = c("a", "b")),
+      main_results_by = "city_name",
+      exp_central = c(8.85, 9.20),
+      cutoff_central = 5,
+      rr_central = 1.369,
+      rr_increment = 10,
+      erf_shape = "log_linear",
+      bhd_central = c(30747, 31500))
+
+  testthat::expect_equal(
+    object = output_attribute$health_main$impact,
+    expected = output_attribute$health_detailed$results_raw$impact)
+})
+
+testthat::test_that("NA in results if NA in lower and upper |some_rows_without_ci|", {
+
+  # An NA in _lower and _upper means that this row has no uncertainty,
+  # so its lower and upper impacts are NA and so are the lower and upper
+  # totals that include this row (instead of silently leaving the row out)
+  output_attribute <-
+    healthiar::attribute_health(
+      geo_id_micro = c("a", "b"),
+      geo_id_macro = "x",
+      exp_central = c(8, 9), exp_lower = c(7, NA), exp_upper = c(9, NA),
+      cutoff_central = 5,
+      bhd_central = c(1000, 2000),
+      rr_central = 1.06, rr_increment = 10,
+      erf_shape = "log_linear")
+
+  testthat::expect_equal(
+    object = output_attribute$health_detailed$results_by_geo_id_macro$impact,
+    expected = c(output_attribute$health_main$impact, NA, NA))
 })
